@@ -23,13 +23,18 @@ export class FilterParamSync implements OnDestroy {
 
   @Input()
   storageSync: StoreFilter;
+
+  @Input()
+  name: string;
   destory$ = new Subject();
+
   constructor(
     private ngControl: NgControl,
     private router: Router,
     private activedRoute: ActivatedRoute
   ) {}
   ngOnInit() {
+    console.log(this.ngControl);
     this.init();
     this.ngControl.valueChanges
       ?.pipe(
@@ -54,7 +59,7 @@ export class FilterParamSync implements OnDestroy {
   async init() {
     let data =
       this.getQueryParam() || this.getFromStorage() || this.value || null;
-
+    console.log('data---', typeof data);
     if (data !== null) {
       this.patchValue(data);
     } else if (this.defaultValue) {
@@ -115,6 +120,9 @@ export class FilterParamSync implements OnDestroy {
   get key(): string {
     if (typeof this.ngControl.name === 'string') {
       return this.ngControl.name;
+    }
+    if (this.name) {
+      return this.name;
     }
     return null;
   }
