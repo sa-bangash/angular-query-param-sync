@@ -3,13 +3,13 @@
     type="text"
     formControlName="search"
     filterParamSync
-    [filterStore]="storage"
+    [storageSync]="storage"
   />
   <select
     formControlName="location"
     filterParamSync
     [defaultValue]="location$"
-    [filterStore]="storage"
+    [storageSync]="storage"
   >
     <option value="1">Volvo 1</option>
     <option value="2">Saab 2</option>

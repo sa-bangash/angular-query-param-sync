@@ -22,7 +22,7 @@ export class FilterParamSync implements OnDestroy {
   defaultValue: Observable<any> | any;
 
   @Input()
-  filterStore: StoreFilter;
+  storageSync: StoreFilter;
   destory$ = new Subject();
   constructor(
     private ngControl: NgControl,
@@ -108,11 +108,11 @@ export class FilterParamSync implements OnDestroy {
   }
 
   saveToPermanent(data: any) {
-    this.filterStore?.save(this.key, data);
+    this.storageSync?.save(this.key, data);
   }
 
   getFromPermentStorage() {
-    return this.filterStore?.query(this.key);
+    return this.storageSync?.query(this.key);
   }
 
   get key(): string {
