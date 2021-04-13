@@ -6,16 +6,16 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
-import { FilterRetainDirective } from './filter-retain.directive';
-import { FilterPermenentRetainDirective } from './filter-permenent-retain.directive';
+import { FilterParamSync } from './filter-param-sync.directive';
+import { FilterParamStorage } from './filter-param-storage.directive';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     SignupComponent,
-    FilterRetainDirective,
-    FilterPermenentRetainDirective,
+    FilterParamSync,
+    FilterParamStorage,
   ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule, FormsModule],
   providers: [],

@@ -1,6 +1,16 @@
-<form [formGroup]="form">
-  <input type="text" formControlName="search" appFilterRetain />
-  <select formControlName="location" appFilterRetain [defaultValue]="location$">
+<form [formGroup]="form" filterParamStorage="FAQ" #storage="paramStorage">
+  <input
+    type="text"
+    formControlName="search"
+    filterParamSync
+    [filterStore]="storage"
+  />
+  <select
+    formControlName="location"
+    filterParamSync
+    [defaultValue]="location$"
+    [filterStore]="storage"
+  >
     <option value="1">Volvo 1</option>
     <option value="2">Saab 2</option>
     <option value="3">Mercedes 3</option>

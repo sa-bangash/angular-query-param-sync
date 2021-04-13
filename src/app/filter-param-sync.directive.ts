@@ -15,9 +15,9 @@ interface StoreFilter {
   query(key: string): any;
 }
 @Directive({
-  selector: '[appFilterRetain]',
+  selector: '[filterParamSync]',
 })
-export class FilterRetainDirective implements OnDestroy {
+export class FilterParamSync implements OnDestroy {
   @Input()
   defaultValue: Observable<any> | any;
 

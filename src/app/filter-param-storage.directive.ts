@@ -1,11 +1,11 @@
 import { Directive, Input } from '@angular/core';
 
 @Directive({
-  selector: '[appFilterPermenentRetain]',
-  exportAs: 'storeFilter',
+  selector: '[filterParamStorage]',
+  exportAs: 'paramStorage',
 })
-export class FilterPermenentRetainDirective {
-  @Input('appFilterPermenentRetain') featureKey: string;
+export class FilterParamStorage {
+  @Input('filterParamStorage') featureKey: string;
 
   save(controlKey: string, value: any) {
     localStorage.setItem(this.getBuildKey(controlKey), value);
