@@ -13,10 +13,7 @@ export class LoginComponent implements OnInit {
   form: FormGroup;
   location$ = new Observable((obser) => {
     obser.next(4);
-  }).pipe(
-    delay(2000),
-    tap((resp) => console.log('callend tap', resp))
-  );
+  }).pipe(delay(2000));
   constructor(
     private fb: FormBuilder,
     public filterStoreService: FilterStoreService
@@ -30,7 +27,7 @@ export class LoginComponent implements OnInit {
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
       .subscribe((resp) => {
-        console.log('backend called', resp);
+        console.log('do some thing', resp);
       });
   }
 

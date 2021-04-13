@@ -34,7 +34,6 @@ export class FilterParamSync implements OnDestroy {
     private activedRoute: ActivatedRoute
   ) {}
   ngOnInit() {
-    console.log(this.ngControl);
     this.init();
     this.ngControl.valueChanges
       ?.pipe(
@@ -59,7 +58,6 @@ export class FilterParamSync implements OnDestroy {
   async init() {
     let data =
       this.getQueryParam() || this.getFromStorage() || this.value || null;
-    console.log('data---', typeof data);
     if (data !== null) {
       this.patchValue(data);
     } else if (this.defaultValue) {
@@ -110,6 +108,9 @@ export class FilterParamSync implements OnDestroy {
   }
 
   saveToStorage(data: any) {
+    if (data === null) {
+      data = '';
+    }
     this.storageSync?.save(this.key, data);
   }
 

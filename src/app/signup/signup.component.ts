@@ -9,14 +9,11 @@ import { delay, tap } from 'rxjs/operators';
   styleUrls: ['./signup.component.css'],
 })
 export class SignupComponent implements OnInit {
-  search = new FormControl('');
+  search = new FormControl();
   location = new FormControl();
   location$ = new Observable((obser) => {
     obser.next(4);
-  }).pipe(
-    delay(2000),
-    tap((resp) => console.log('callend tap', resp))
-  );
+  }).pipe(delay(2000));
   constructor() {}
 
   ngOnInit(): void {}
