@@ -5,7 +5,7 @@ import { Directive, Input } from '@angular/core';
   exportAs: 'paramStorage',
 })
 export class FilterParamStorage {
-  @Input('filterParamStorage') featureKey: string;
+  @Input('filterParamStorage') nameSpaceKey: string = '';
 
   save(controlKey: string, value: any) {
     localStorage.setItem(this.getBuildKey(controlKey), value);
@@ -16,9 +16,9 @@ export class FilterParamStorage {
   }
 
   private getBuildKey(controlKey: string): string {
-    if (this.featureKey) {
-      return `${this.featureKey}_${controlKey}`;
+    if (this.nameSpaceKey) {
+      return `${this.nameSpaceKey}_${controlKey}`;
     }
-    return null;
+    return controlKey;
   }
 }
