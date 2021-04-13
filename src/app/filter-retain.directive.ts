@@ -1,52 +1,64 @@
-import { Directive, Input, OnDestroy } from '@angular/core';
+import { Directive, Input, OnDestroy, Optional, Self } from '@angular/core';
 import { NgControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { Observable, isObservable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, skip, take } from 'rxjs/operators';
+import { FilterPermenentRetainDirective } from './filter-permenent-retain.directive';
 @Directive({
   selector: '[appFilterRetain]',
 })
 export class FilterRetainDirective implements OnDestroy {
   @Input()
-  featureKey: string = null;
-  @Input()
   defaultValue: Observable<any> | any;
+
   constructor(
     private ngControl: NgControl,
     private router: Router,
-    private activedRoute: ActivatedRoute
+    private activedRoute: ActivatedRoute,
+    @Optional() private filterStore: FilterPermenentRetainDirective
   ) {}
   ngOnInit() {
-    console.log('---onInit---', this.key);
-    const data = this.getQueryParamData() || this.getData();
-    if (data !== null) {
-      this.patchValue(data);
-    } else {
-      if (isObservable(this.defaultValue)) {
-        this.defaultValue.pipe(take(1)).subscribe((resp) => {
-          this.patchValue(resp);
-        });
-      } else {
-        this.patchValue(this.defaultValue);
-      }
-    }
-    setTimeout(() => {
-      this.updateQueryParam();
-    }, 0);
+    this.init();
     this.ngControl.valueChanges
       ?.pipe(debounceTime(500), distinctUntilChanged(isEqual))
       .subscribe((resp) => {
-        this.storeData();
+        this.saveToPermanent(resp);
         this.updateQueryParam();
       });
     this.activedRoute.queryParams.pipe(skip(1)).subscribe((resp) => {
-      if (resp[this.key] && resp[this.key] !== this.value) {
+      if (resp[this.key] && !this.isQueryAndFormSync()) {
         this.patchValue(resp[this.key]);
+        this.saveToPermanent(this.value);
       }
     });
   }
 
+  async init() {
+    let data = this.getQueryParamData() || this.getFromPermentStorage() || null;
+
+    if (data !== null) {
+      this.patchValue(data);
+    } else {
+      if (isObservable(this.defaultValue)) {
+        data = await this.defaultValue
+          .pipe(take(1))
+          .toPromise()
+          .then((resp) => {
+            this.patchValue(resp);
+            return resp;
+          });
+      } else {
+        this.patchValue(this.defaultValue);
+        data = this.defaultValue;
+      }
+    }
+
+    setTimeout(() => {
+      this.updateQueryParam();
+    }, 0);
+    this.saveToPermanent(data);
+  }
   getQueryParamData() {
     const data = this.activedRoute.snapshot.queryParams;
     if (data) {
@@ -55,6 +67,9 @@ export class FilterRetainDirective implements OnDestroy {
     return null;
   }
   updateQueryParam() {
+    if (this.isQueryAndFormSync()) {
+      return;
+    }
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {
@@ -63,19 +78,24 @@ export class FilterRetainDirective implements OnDestroy {
       queryParamsHandling: 'merge',
     });
   }
+
+  isQueryAndFormSync(): Boolean {
+    const param = this.getQueryParamData();
+    return this.getQueryParamData() === this.value;
+  }
   patchValue(data: any) {
     this.ngControl.control?.patchValue(data);
   }
-  get storeKey(): string {
-    if (this.featureKey && typeof this.ngControl.name === 'string') {
-      return `${this.featureKey}_${this.ngControl.name}`;
-    }
-    if (typeof this.ngControl.name === 'string') {
-      return this.ngControl.name;
-    }
-    return null;
+
+  saveToPermanent(data: any) {
+    this.filterStore?.save(this.key, data);
   }
-  get key() {
+
+  getFromPermentStorage() {
+    return this.filterStore?.query(this.key);
+  }
+
+  get key(): string {
     if (typeof this.ngControl.name === 'string') {
       return this.ngControl.name;
     }
@@ -85,16 +105,6 @@ export class FilterRetainDirective implements OnDestroy {
   get value() {
     return this.ngControl.control.value;
   }
-  storeData() {
-    if (typeof this.ngControl.name === 'string') {
-      localStorage.setItem(this.storeKey, this.value);
-    }
-  }
-  getData() {
-    if (typeof this.ngControl.name === 'string') {
-      return localStorage.getItem(this.storeKey);
-    }
-    return null;
-  }
+
   ngOnDestroy(): void {}
 }

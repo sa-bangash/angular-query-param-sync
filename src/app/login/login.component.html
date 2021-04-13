@@ -1,17 +1,15 @@
-<form [formGroup]="form">
+<form [formGroup]="form" appFilterPermenentRetain="faq">
   <input
     type="text"
     formControlName="search"
     appFilterRetain
-    filterFeaturekey="faq_page"
-    featureKey="faq"
     defaultValue="default"
   />
   <select
     formControlName="location"
-    featureKey="faq"
     appFilterRetain
     [defaultValue]="location$"
+    defaultValue="location$"
   >
     <option value="1">Volvo 1</option>
     <option value="2">Saab 2</option>
@@ -19,3 +17,5 @@
     <option value="4">Audi 4</option>
   </select>
 </form>
+
+<button routerLink="/signup">signup</button>

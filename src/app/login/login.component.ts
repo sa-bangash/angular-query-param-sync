@@ -11,7 +11,7 @@ import { isEqual } from 'lodash';
 export class LoginComponent implements OnInit {
   form: FormGroup;
   location$ = new Observable((obser) => {
-    obser.next(1);
+    obser.next(4);
   }).pipe(
     delay(2000),
     tap((resp) => console.log('callend tap', resp))

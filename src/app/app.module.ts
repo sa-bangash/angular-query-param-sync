@@ -7,6 +7,7 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { FilterRetainDirective } from './filter-retain.directive';
+import { FilterPermenentRetainDirective } from './filter-permenent-retain.directive';
 
 @NgModule({
   declarations: [
@@ -14,6 +15,7 @@ import { FilterRetainDirective } from './filter-retain.directive';
     LoginComponent,
     SignupComponent,
     FilterRetainDirective,
+    FilterPermenentRetainDirective,
   ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule, FormsModule],
   providers: [],
