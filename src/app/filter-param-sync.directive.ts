@@ -38,7 +38,7 @@ export class FilterParamSync implements OnDestroy {
         takeUntil(this.destory$)
       )
       .subscribe((resp) => {
-        this.saveToPermanent(resp);
+        this.saveToStorage(resp);
         this.updateQueryParam();
       });
     this.activedRoute.queryParams
@@ -46,21 +46,18 @@ export class FilterParamSync implements OnDestroy {
       .subscribe((resp) => {
         if (resp[this.key] && !this.isQueryAndFormSync()) {
           this.patchValue(resp[this.key]);
-          this.saveToPermanent(this.value);
+          this.saveToStorage(this.value);
         }
       });
   }
 
   async init() {
     let data =
-      this.getQueryParamData() ||
-      this.getFromPermentStorage() ||
-      this.value ||
-      null;
+      this.getQueryParam() || this.getFromStorage() || this.value || null;
 
     if (data !== null) {
       this.patchValue(data);
-    } else {
+    } else if (this.defaultValue) {
       if (isObservable(this.defaultValue)) {
         data = await this.defaultValue
           .pipe(take(1))
@@ -77,9 +74,9 @@ export class FilterParamSync implements OnDestroy {
     setTimeout(() => {
       this.updateQueryParam();
     }, 0);
-    this.saveToPermanent(data || this.defaultValue || this.value);
+    this.saveToStorage(data || this.defaultValue || this.value);
   }
-  getQueryParamData() {
+  getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
     if (data) {
       return data[this.key];
@@ -100,18 +97,18 @@ export class FilterParamSync implements OnDestroy {
   }
 
   isQueryAndFormSync(): Boolean {
-    const param = this.getQueryParamData();
-    return this.getQueryParamData() === this.value;
+    const param = this.getQueryParam();
+    return this.getQueryParam() === this.value;
   }
   patchValue(data: any) {
     this.ngControl.control?.patchValue(data);
   }
 
-  saveToPermanent(data: any) {
+  saveToStorage(data: any) {
     this.storageSync?.save(this.key, data);
   }
 
-  getFromPermentStorage() {
+  getFromStorage() {
     return this.storageSync?.query(this.key);
   }
 
