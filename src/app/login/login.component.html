@@ -1,16 +1,6 @@
-<form [formGroup]="form" appFilterPermenentRetain="faq">
-  <input
-    type="text"
-    formControlName="search"
-    appFilterRetain
-    defaultValue="default"
-  />
-  <select
-    formControlName="location"
-    appFilterRetain
-    [defaultValue]="location$"
-    defaultValue="location$"
-  >
+<form [formGroup]="form">
+  <input type="text" formControlName="search" appFilterRetain />
+  <select formControlName="location" appFilterRetain [defaultValue]="location$">
     <option value="1">Volvo 1</option>
     <option value="2">Saab 2</option>
     <option value="3">Mercedes 3</option>

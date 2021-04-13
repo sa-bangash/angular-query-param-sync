@@ -1,12 +1,13 @@
-import { Directive, Input } from '@angular/core';
+import { Injectable } from '@angular/core';
 
-@Directive({
-  selector: '[appFilterPermenentRetain]',
-  exportAs: 'storeFilter',
+@Injectable({
+  providedIn: 'root',
 })
-export class FilterPermenentRetainDirective {
-  @Input('appFilterPermenentRetain') featureKey: string;
-
+export class FilterStoreService {
+  featureKey: string = '';
+  setFeatureKey(value: string) {
+    this.featureKey = value;
+  }
   save(controlKey: string, value: any) {
     localStorage.setItem(this.getBuildKey(controlKey), value);
   }

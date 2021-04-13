@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { interval, Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { FilterStoreService } from '../filter-store.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -16,10 +17,14 @@ export class LoginComponent implements OnInit {
     delay(2000),
     tap((resp) => console.log('callend tap', resp))
   );
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    public filterStoreService: FilterStoreService
+  ) {
+    this.filterStoreService.setFeatureKey('search');
     this.form = this.fb.group({
       location: [],
-      search: 'abcdddd',
+      search: 'default from form',
     });
 
     this.form.valueChanges

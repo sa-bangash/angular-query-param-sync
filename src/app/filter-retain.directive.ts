@@ -2,9 +2,18 @@ import { Directive, Input, OnDestroy, Optional, Self } from '@angular/core';
 import { NgControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { Observable, isObservable } from 'rxjs';
-import { debounceTime, distinctUntilChanged, skip, take } from 'rxjs/operators';
-import { FilterPermenentRetainDirective } from './filter-permenent-retain.directive';
+import { Observable, isObservable, Subject } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  skip,
+  take,
+  takeUntil,
+} from 'rxjs/operators';
+interface StoreFilter {
+  save(key: string, value: string): void;
+  query(key: string): any;
+}
 @Directive({
   selector: '[appFilterRetain]',
 })
@@ -12,30 +21,42 @@ export class FilterRetainDirective implements OnDestroy {
   @Input()
   defaultValue: Observable<any> | any;
 
+  @Input()
+  filterStore: StoreFilter;
+  destory$ = new Subject();
   constructor(
     private ngControl: NgControl,
     private router: Router,
-    private activedRoute: ActivatedRoute,
-    @Optional() private filterStore: FilterPermenentRetainDirective
+    private activedRoute: ActivatedRoute
   ) {}
   ngOnInit() {
     this.init();
     this.ngControl.valueChanges
-      ?.pipe(debounceTime(500), distinctUntilChanged(isEqual))
+      ?.pipe(
+        debounceTime(500),
+        distinctUntilChanged(isEqual),
+        takeUntil(this.destory$)
+      )
       .subscribe((resp) => {
         this.saveToPermanent(resp);
         this.updateQueryParam();
       });
-    this.activedRoute.queryParams.pipe(skip(1)).subscribe((resp) => {
-      if (resp[this.key] && !this.isQueryAndFormSync()) {
-        this.patchValue(resp[this.key]);
-        this.saveToPermanent(this.value);
-      }
-    });
+    this.activedRoute.queryParams
+      .pipe(skip(1), takeUntil(this.destory$))
+      .subscribe((resp) => {
+        if (resp[this.key] && !this.isQueryAndFormSync()) {
+          this.patchValue(resp[this.key]);
+          this.saveToPermanent(this.value);
+        }
+      });
   }
 
   async init() {
-    let data = this.getQueryParamData() || this.getFromPermentStorage() || null;
+    let data =
+      this.getQueryParamData() ||
+      this.getFromPermentStorage() ||
+      this.value ||
+      null;
 
     if (data !== null) {
       this.patchValue(data);
@@ -50,14 +71,13 @@ export class FilterRetainDirective implements OnDestroy {
           });
       } else {
         this.patchValue(this.defaultValue);
-        data = this.defaultValue;
       }
     }
 
     setTimeout(() => {
       this.updateQueryParam();
     }, 0);
-    this.saveToPermanent(data);
+    this.saveToPermanent(data || this.defaultValue || this.value);
   }
   getQueryParamData() {
     const data = this.activedRoute.snapshot.queryParams;
@@ -106,5 +126,8 @@ export class FilterRetainDirective implements OnDestroy {
     return this.ngControl.control.value;
   }
 
-  ngOnDestroy(): void {}
+  ngOnDestroy(): void {
+    this.destory$.next();
+    this.destory$.complete();
+  }
 }
