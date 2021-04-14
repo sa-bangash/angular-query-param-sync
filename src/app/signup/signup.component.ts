@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { merge } from 'lodash';
 import { Observable } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { debounceTime, delay, distinctUntilChanged, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-signup',
@@ -10,11 +11,17 @@ import { delay, tap } from 'rxjs/operators';
 })
 export class SignupComponent implements OnInit {
   search = new FormControl();
-  location = new FormControl();
+  location = new FormControl([]);
   location$ = new Observable((obser) => {
-    obser.next(4);
+    obser.next([4]);
   }).pipe(delay(2000));
   constructor() {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    merge(this.location.valueChanges, this.search.valueChanges)
+      .pipe(debounceTime(500), distinctUntilChanged())
+      .subscribe((resp) => {
+        console.log('backend api called');
+      });
+  }
 }

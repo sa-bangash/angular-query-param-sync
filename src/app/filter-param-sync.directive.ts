@@ -58,9 +58,7 @@ export class FilterParamSync implements OnDestroy {
   async init() {
     let data =
       this.getQueryParam() || this.getFromStorage() || this.value || null;
-    if (data !== null) {
-      this.patchValue(data);
-    } else if (this.defaultValue) {
+    if (this.defaultValue && (!data || (Array.isArray(data) && !data.length))) {
       if (isObservable(this.defaultValue)) {
         data = await this.defaultValue
           .pipe(take(1))
@@ -72,6 +70,8 @@ export class FilterParamSync implements OnDestroy {
       } else {
         this.patchValue(this.defaultValue);
       }
+    } else if (data) {
+      this.patchValue(data);
     }
 
     setTimeout(() => {
@@ -81,7 +81,7 @@ export class FilterParamSync implements OnDestroy {
   }
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
-    if (data) {
+    if (data && data[this.key]) {
       return data[this.key];
     }
     return null;
@@ -101,9 +101,13 @@ export class FilterParamSync implements OnDestroy {
 
   isQueryAndFormSync(): Boolean {
     const param = this.getQueryParam();
-    return this.getQueryParam() === this.value;
+    return isEqual(param, this.value);
   }
   patchValue(data: any) {
+    console.log(this.ngControl.control);
+    if (Array.isArray(this.ngControl.control.value)) {
+      data = Array.isArray(data) ? data : [data];
+    }
     this.ngControl.control?.patchValue(data);
   }
 
