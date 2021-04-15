@@ -1,5 +1,5 @@
 import { Directive, Input, OnDestroy, Optional, Self } from '@angular/core';
-import { NgControl } from '@angular/forms';
+import { AbstractControl, NgControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { Observable, isObservable, Subject } from 'rxjs';
@@ -9,7 +9,9 @@ import {
   skip,
   take,
   takeUntil,
+  filter,
 } from 'rxjs/operators';
+import { QueryParamutilService } from './query-paramutil.service';
 interface StoreFilter {
   save(key: string, value: string): void;
   query(key: string): any;
@@ -18,6 +20,8 @@ interface StoreFilter {
   selector: '[filterParamSync]',
 })
 export class FilterParamSync implements OnDestroy {
+  @Input('filterParamSync') ctrl: AbstractControl | undefined;
+
   @Input()
   defaultValue: Observable<any> | any;
 
@@ -28,14 +32,18 @@ export class FilterParamSync implements OnDestroy {
   name: string;
   destory$ = new Subject();
 
+  defaultControlValue: any = null;
   constructor(
     private ngControl: NgControl,
     private router: Router,
-    private activedRoute: ActivatedRoute
+    private activedRoute: ActivatedRoute,
+    private queryParamUtils: QueryParamutilService
   ) {}
   ngOnInit() {
+    this.defaultControlValue = this.value;
+    console.log(this.key, this.control.value);
     this.init();
-    this.ngControl.valueChanges
+    this.control.valueChanges
       ?.pipe(
         debounceTime(500),
         distinctUntilChanged(isEqual),
@@ -46,12 +54,15 @@ export class FilterParamSync implements OnDestroy {
         this.updateQueryParam();
       });
     this.activedRoute.queryParams
-      .pipe(skip(1), takeUntil(this.destory$))
+      .pipe(
+        // skip(1),
+        takeUntil(this.destory$),
+        filter(() => !this.isQueryAndFormSync())
+      )
       .subscribe((resp) => {
-        if (resp[this.key] && !this.isQueryAndFormSync()) {
-          this.patchValue(resp[this.key]);
-          this.saveToStorage(this.value);
-        }
+        console.log(this.key, 'first on first time');
+        this.patchValue(resp[this.key]);
+        this.saveToStorage(this.value);
       });
   }
 
@@ -74,10 +85,11 @@ export class FilterParamSync implements OnDestroy {
       this.patchValue(data);
     }
 
-    setTimeout(() => {
-      this.updateQueryParam();
-    }, 0);
-    this.saveToStorage(data || this.defaultValue || this.value);
+    this.queryParamUtils.onPush({
+      [this.key]: this.value,
+    });
+
+    this.saveToStorage(data || this.defaultValue);
   }
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
@@ -103,12 +115,16 @@ export class FilterParamSync implements OnDestroy {
     const param = this.getQueryParam();
     return isEqual(param, this.value);
   }
+
   patchValue(data: any) {
-    console.log(this.ngControl.control);
-    if (Array.isArray(this.ngControl.control.value)) {
-      data = Array.isArray(data) ? data : [data];
+    if (Array.isArray(this.defaultControlValue)) {
+      data = Array.isArray(data)
+        ? data
+        : [undefined, 'undefined'].includes(data)
+        ? []
+        : [data];
     }
-    this.ngControl.control?.patchValue(data);
+    this.control?.patchValue(data);
   }
 
   saveToStorage(data: any) {
@@ -134,6 +150,13 @@ export class FilterParamSync implements OnDestroy {
 
   get value() {
     return this.ngControl.control.value;
+  }
+
+  get control(): AbstractControl {
+    if (this.ctrl) {
+      return this.ctrl;
+    }
+    return this.ngControl.control;
   }
 
   ngOnDestroy(): void {
