@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { QueryParamutilService } from './query-paramutil.service';
+import { QueryParamInitService } from './query-param-init.service';
 
 describe('QueryParamutilService', () => {
-  let service: QueryParamutilService;
+  let service: QueryParamInitService;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(QueryParamutilService);
+    service = TestBed.inject(QueryParamInitService);
   });
 
   it('should be created', () => {

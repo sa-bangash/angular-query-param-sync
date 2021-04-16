@@ -13,11 +13,12 @@
     name="location"
     multiple
     [storageSync]="storage"
+    [queryParamFrom]="toIntArray"
   >
-    <option value="1">Volvo 1</option>
-    <option value="2">Saab 2</option>
-    <option value="3">Mercedes 3</option>
-    <option value="4">Audi 4</option>
+    <option [ngValue]="1">Volvo 1</option>
+    <option [ngValue]="2">Saab 2</option>
+    <option [ngValue]="3">Mercedes 3</option>
+    <option [ngValue]="4">Audi 4</option>
   </select>
 </form>
 <button routerLink="/login">login</button>

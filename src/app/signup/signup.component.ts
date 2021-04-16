@@ -24,4 +24,13 @@ export class SignupComponent implements OnInit {
         console.log('backend api called');
       });
   }
+  toIntArray(val: any[]) {
+    if (Array.isArray(val)) {
+      return val.map((item) => +item);
+    }
+    if (val) {
+      return [+val];
+    }
+    return [];
+  }
 }

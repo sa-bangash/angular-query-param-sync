@@ -11,7 +11,7 @@ import {
   takeUntil,
   filter,
 } from 'rxjs/operators';
-import { QueryParamutilService } from './query-paramutil.service';
+import { QueryParamInitService } from './query-param-init.service';
 interface StoreFilter {
   save(key: string, value: string): void;
   query(key: string): any;
@@ -20,7 +20,7 @@ interface StoreFilter {
   selector: '[filterParamSync]',
 })
 export class FilterParamSync implements OnDestroy {
-  @Input('filterParamSync') ctrl: AbstractControl | undefined;
+  @Input('filterParamSync') ctrl: AbstractControl | any;
 
   @Input()
   defaultValue: Observable<any> | any;
@@ -29,15 +29,27 @@ export class FilterParamSync implements OnDestroy {
   storageSync: StoreFilter;
 
   @Input()
-  name: string;
+  queryParamName: string;
   destory$ = new Subject();
-  // we need to find way how to take default type: like form element is array
+
+  /*
+  defaultControlValue
+  we need to find way how to take default type:
+  like control is  element is array becuase we lost the 
+  type when getting single data from query param
+   */
   defaultControlValue: any = null;
+
+  @Input()
+  queryParamTo: (value: any) => any;
+
+  @Input()
+  queryParamFrom: (value: any) => any;
   constructor(
     @Optional() private ngControl: NgControl,
     private router: Router,
     private activedRoute: ActivatedRoute,
-    private queryParamUtils: QueryParamutilService
+    private queryParamUtils: QueryParamInitService
   ) {}
   async ngOnInit() {
     this.defaultControlValue = this.value;
@@ -58,8 +70,9 @@ export class FilterParamSync implements OnDestroy {
         filter(() => !this.isQueryAndFormSync())
       )
       .subscribe((resp) => {
-        this.patchValue(resp[this.key]);
-        this.saveToStorage(this.value);
+        const data = this.getQueryParam();
+        this.patchValue(data);
+        this.saveToStorage(data);
       });
   }
 
@@ -91,6 +104,9 @@ export class FilterParamSync implements OnDestroy {
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
     if (data && data[this.key]) {
+      if (typeof this.queryParamFrom === 'function') {
+        return this.queryParamFrom(data[this.key]);
+      }
       return data[this.key];
     }
     return null;
@@ -99,10 +115,14 @@ export class FilterParamSync implements OnDestroy {
     if (this.isQueryAndFormSync()) {
       return;
     }
+    let value = this.value;
+    if (typeof this.queryParamTo === 'function') {
+      value = this.queryParamTo(this.value);
+    }
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {
-        [this.key]: this.value,
+        [this.key]: value,
       },
       queryParamsHandling: 'merge',
     });
@@ -136,11 +156,11 @@ export class FilterParamSync implements OnDestroy {
   }
 
   get key(): string {
+    if (this.queryParamName) {
+      return this.queryParamName;
+    }
     if (typeof this.ngControl.name === 'string') {
       return this.ngControl.name;
-    }
-    if (this.name) {
-      return this.name;
     }
     return null;
   }
