@@ -31,18 +31,17 @@ export class FilterParamSync implements OnDestroy {
   @Input()
   name: string;
   destory$ = new Subject();
-
+  // we need to find way how to take default type: like form element is array
   defaultControlValue: any = null;
   constructor(
-    private ngControl: NgControl,
+    @Optional() private ngControl: NgControl,
     private router: Router,
     private activedRoute: ActivatedRoute,
     private queryParamUtils: QueryParamutilService
   ) {}
-  ngOnInit() {
+  async ngOnInit() {
     this.defaultControlValue = this.value;
-    console.log(this.key, this.control.value);
-    this.init();
+    await this.init();
     this.control.valueChanges
       ?.pipe(
         debounceTime(500),
@@ -55,12 +54,10 @@ export class FilterParamSync implements OnDestroy {
       });
     this.activedRoute.queryParams
       .pipe(
-        // skip(1),
         takeUntil(this.destory$),
         filter(() => !this.isQueryAndFormSync())
       )
       .subscribe((resp) => {
-        console.log(this.key, 'first on first time');
         this.patchValue(resp[this.key]);
         this.saveToStorage(this.value);
       });
@@ -85,7 +82,7 @@ export class FilterParamSync implements OnDestroy {
       this.patchValue(data);
     }
 
-    this.queryParamUtils.onPush({
+    await this.queryParamUtils.init({
       [this.key]: this.value,
     });
 
