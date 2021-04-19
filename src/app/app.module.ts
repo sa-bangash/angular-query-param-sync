@@ -9,6 +9,7 @@ import { SignupComponent } from './signup/signup.component';
 import { FilterParamSync } from './filter-param-sync.directive';
 import { FilterParamStorage } from './filter-param-storage.directive';
 import { BooksComponent } from './books/books.component';
+import { FilterGroupParamSyncDirective } from './filter-group-param-sync.directive';
 
 @NgModule({
   declarations: [
@@ -18,6 +19,7 @@ import { BooksComponent } from './books/books.component';
     FilterParamSync,
     FilterParamStorage,
     BooksComponent,
+    FilterGroupParamSyncDirective,
   ],
   imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule, FormsModule],
   providers: [],
