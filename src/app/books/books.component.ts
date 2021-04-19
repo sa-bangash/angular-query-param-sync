@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { interval, Observable } from 'rxjs';
-import { debounceTime, delay, distinctUntilChanged, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
+import { Observable } from 'rxjs';
+import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
 import { FilterStoreService } from '../filter-store.service';
+
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
+  selector: 'app-books',
+  templateUrl: './books.component.html',
+  styleUrls: ['./books.component.css'],
 })
-export class LoginComponent implements OnInit {
+export class BooksComponent implements OnInit {
   form: FormGroup;
   location$ = new Observable((obser) => {
     obser.next(4);
@@ -20,8 +21,9 @@ export class LoginComponent implements OnInit {
   ) {
     this.filterStoreService.setFeatureKey('search');
     this.form = this.fb.group({
-      location: [],
+      booksName: [[]],
       search: 'default from form',
+      date: [],
     });
 
     this.form.valueChanges

@@ -1,5 +1,5 @@
 import { Directive, Input, OnDestroy, Optional, Self } from '@angular/core';
-import { AbstractControl, NgControl } from '@angular/forms';
+import { AbstractControl, FormGroup, NgControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { Observable, isObservable, Subject } from 'rxjs';
@@ -36,7 +36,7 @@ export class FilterParamSync implements OnDestroy {
   defaultControlValue
   we need to find way how to take default type:
   like control is  element is array becuase we lost the 
-  type when getting single data from query param
+  array when getting single data from query param
    */
   defaultControlValue: any = null;
 
@@ -96,7 +96,7 @@ export class FilterParamSync implements OnDestroy {
     }
 
     await this.queryParamUtils.init({
-      [this.key]: this.value,
+      [this.key]: this.getDataForQueryParam(),
     });
 
     this.saveToStorage(data || this.defaultValue);
@@ -106,23 +106,32 @@ export class FilterParamSync implements OnDestroy {
     if (data && data[this.key]) {
       if (typeof this.queryParamFrom === 'function') {
         return this.queryParamFrom(data[this.key]);
+      } else if (this.control instanceof FormGroup) {
+        return JSON.parse(data[this.key]);
       }
       return data[this.key];
     }
     return null;
   }
+  getDataForQueryParam() {
+    let value = this.value;
+    if (typeof this.queryParamTo === 'function') {
+      value = this.queryParamTo(this.value);
+    } else if (this.control instanceof FormGroup) {
+      console.log('yes form group');
+      value = JSON.stringify(this.value);
+    }
+    return value;
+  }
   updateQueryParam() {
     if (this.isQueryAndFormSync()) {
       return;
     }
-    let value = this.value;
-    if (typeof this.queryParamTo === 'function') {
-      value = this.queryParamTo(this.value);
-    }
+
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {
-        [this.key]: value,
+        [this.key]: this.getDataForQueryParam(),
       },
       queryParamsHandling: 'merge',
     });
@@ -166,6 +175,9 @@ export class FilterParamSync implements OnDestroy {
   }
 
   get value() {
+    if (this.ctrl) {
+      return this.ctrl.value;
+    }
     return this.ngControl.control.value;
   }
 

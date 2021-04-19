@@ -3,14 +3,14 @@
     type="text"
     [formControl]="search"
     filterParamSync
-    name="search"
+    queryParamName="search"
     [storageSync]="storage"
   />
   <select
     [formControl]="location"
     filterParamSync
     [defaultValue]="location$"
-    name="location"
+    queryParamName="location"
     multiple
     [storageSync]="storage"
     [queryParamFrom]="toIntArray"

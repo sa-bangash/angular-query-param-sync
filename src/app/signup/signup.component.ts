@@ -20,9 +20,7 @@ export class SignupComponent implements OnInit {
   ngOnInit(): void {
     merge(this.location.valueChanges, this.search.valueChanges)
       .pipe(debounceTime(500), distinctUntilChanged())
-      .subscribe((resp) => {
-        console.log('backend api called');
-      });
+      .subscribe((resp) => {});
   }
   toIntArray(val: any[]) {
     if (Array.isArray(val)) {

@@ -1,0 +1,23 @@
+<form
+  [formGroup]="form"
+  [filterParamSync]="form"
+  [storageSync]="storage"
+  filterParamStorage="books"
+  #storage="paramStorage"
+  queryParamName="filter"
+>
+  <input type="text" formControlName="search" />
+  <select formControlName="booksName" multiple>
+    <option [ngValue]="1">Volvo 1</option>
+    <option [ngValue]="2">Saab 2</option>
+    <option [ngValue]="3">Mercedes 3</option>
+    <option [ngValue]="4">Audi 4</option>
+  </select>
+  <input
+    type="datetime-local"
+    id="birthdaytime"
+    name="birthdaytime"
+    formControlName="date"
+  />
+</form>
+<button routerLink="/signup">signup</button>
