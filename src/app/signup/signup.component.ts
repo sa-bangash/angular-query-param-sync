@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { merge } from 'lodash';
+import { isEqual, merge } from 'lodash';
 import { Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged, tap } from 'rxjs/operators';
 
@@ -18,9 +18,11 @@ export class SignupComponent implements OnInit {
   constructor() {}
 
   ngOnInit(): void {
-    merge(this.location.valueChanges, this.search.valueChanges)
-      .pipe(debounceTime(500), distinctUntilChanged())
-      .subscribe((resp) => {});
+    merge(this.search.valueChanges, this.location.valueChanges)
+      .pipe(debounceTime(500), distinctUntilChanged(isEqual))
+      .subscribe((resp) => {
+        console.log('sign up backend called', resp);
+      });
   }
   toIntArray(val: any[]) {
     if (Array.isArray(val)) {

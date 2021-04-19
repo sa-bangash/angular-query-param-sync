@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { isEqual } from 'lodash';
 import { Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
-import { FilterStoreService } from '../filter-store.service';
+import { FilterStoreService } from '../query-param-sync/filter-store.service';
 
 @Component({
   selector: 'app-books',
@@ -28,7 +28,9 @@ export class BooksComponent implements OnInit {
 
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
-      .subscribe((resp) => {});
+      .subscribe((resp) => {
+        console.log('book backend called', this.form.value);
+      });
   }
 
   ngOnInit(): void {}

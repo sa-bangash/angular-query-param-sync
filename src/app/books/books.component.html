@@ -1,10 +1,10 @@
 <form
   [formGroup]="form"
-  [filterGroupParamSync]
-  [storageSync]="storage"
+  filterGroupParamSync
   filterParamStorage="books"
   #storage="paramStorage"
-  queryParamName="filter"
+  queryParamName="filter-v1"
+  [storageSync]="storage"
 >
   <input type="text" formControlName="search" />
   <select formControlName="booksName" multiple>

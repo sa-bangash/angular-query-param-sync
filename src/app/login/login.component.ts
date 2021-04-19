@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { interval, Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged, tap } from 'rxjs/operators';
 import { isEqual } from 'lodash';
-import { FilterStoreService } from '../filter-store.service';
+import { FilterStoreService } from '../query-param-sync/filter-store.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -26,7 +26,9 @@ export class LoginComponent implements OnInit {
 
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
-      .subscribe((resp) => {});
+      .subscribe((resp) => {
+        console.log('login backend called', this.form.value);
+      });
   }
 
   ngOnInit(): void {}

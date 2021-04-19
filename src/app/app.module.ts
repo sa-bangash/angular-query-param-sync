@@ -6,22 +6,18 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
-import { FilterParamSync } from './filter-param-sync.directive';
-import { FilterParamStorage } from './filter-param-storage.directive';
 import { BooksComponent } from './books/books.component';
-import { FilterGroupParamSyncDirective } from './filter-group-param-sync.directive';
+import { QueryParamSyncModule } from './query-param-sync/query-param-sync.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    LoginComponent,
-    SignupComponent,
-    FilterParamSync,
-    FilterParamStorage,
-    BooksComponent,
-    FilterGroupParamSyncDirective,
+  declarations: [AppComponent, LoginComponent, SignupComponent, BooksComponent],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    ReactiveFormsModule,
+    FormsModule,
+    QueryParamSyncModule,
   ],
-  imports: [BrowserModule, AppRoutingModule, ReactiveFormsModule, FormsModule],
   providers: [],
   bootstrap: [AppComponent],
 })

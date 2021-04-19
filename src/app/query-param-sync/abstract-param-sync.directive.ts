@@ -1,7 +1,13 @@
 import { Directive, Input, OnDestroy, Optional, Self } from '@angular/core';
-import { AbstractControl, FormGroup, NgControl } from '@angular/forms';
+import {
+  AbstractControl,
+  AbstractControlDirective,
+  FormGroup,
+  NgControl,
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
+import { protractor } from 'protractor/built/ptor';
 import { Observable, isObservable, Subject } from 'rxjs';
 import {
   debounceTime,
@@ -16,11 +22,9 @@ interface StoreFilter {
   save(key: string, value: string): void;
   query(key: string): any;
 }
-@Directive({
-  selector: '[filterParamSync]',
-})
-export class FilterParamSync implements OnDestroy {
-  @Input('filterParamSync') ctrl: AbstractControl | any;
+@Directive({})
+export abstract class AbstractParamSyncDirective implements OnDestroy {
+  ctrl: AbstractControl | any;
 
   @Input()
   defaultValue: Observable<any> | any;
@@ -30,29 +34,20 @@ export class FilterParamSync implements OnDestroy {
 
   @Input()
   queryParamName: string;
-  destory$ = new Subject();
-
-  /*
-  defaultControlValue
-  we need to find way how to take default type:
-  like control is  element is array becuase we lost the 
-  array when getting single data from query param
-   */
-  defaultControlValue: any = null;
 
   @Input()
   queryParamTo: (value: any) => any;
 
   @Input()
   queryParamFrom: (value: any) => any;
+  destory$ = new Subject();
   constructor(
-    @Optional() private ngControl: NgControl,
-    private router: Router,
-    private activedRoute: ActivatedRoute,
-    private queryParamUtils: QueryParamInitService
+    protected ngControl: AbstractControlDirective,
+    protected router: Router,
+    protected activedRoute: ActivatedRoute,
+    protected queryParamUtils: QueryParamInitService
   ) {}
   async ngOnInit() {
-    this.defaultControlValue = this.value;
     await this.init();
     this.control.valueChanges
       ?.pipe(
@@ -101,6 +96,7 @@ export class FilterParamSync implements OnDestroy {
 
     this.saveToStorage(data || this.defaultValue);
   }
+
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
     if (data && data[this.key]) {
@@ -138,13 +134,6 @@ export class FilterParamSync implements OnDestroy {
   }
 
   patchValue(data: any) {
-    if (Array.isArray(this.defaultControlValue)) {
-      data = Array.isArray(data)
-        ? data
-        : [undefined, 'undefined'].includes(data)
-        ? []
-        : [data];
-    }
     this.control?.patchValue(data);
   }
 
@@ -162,9 +151,6 @@ export class FilterParamSync implements OnDestroy {
   get key(): string {
     if (this.queryParamName) {
       return this.queryParamName;
-    }
-    if (typeof this.ngControl.name === 'string') {
-      return this.ngControl.name;
     }
     return null;
   }
