@@ -1,8 +1,15 @@
 import { Directive, Input, OnDestroy, Optional } from '@angular/core';
 import { AbstractControl, ControlContainer, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AbstractParamSyncDirective } from './abstract-param-sync.directive';
-import { QueryParamInitService } from './query-param-init.service';
+import { isEqual } from 'lodash';
+import { Observable, Subject } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  filter,
+  takeUntil,
+} from 'rxjs/operators';
+
 interface StoreFilter {
   save(key: string, value: string): void;
   query(key: string): any;
@@ -10,18 +17,88 @@ interface StoreFilter {
 @Directive({
   selector: '[filterGroupParamSync]',
 })
-export class FilterGroupParamSyncDirective
-  extends AbstractParamSyncDirective
-  implements OnDestroy {
+export class FilterGroupParamSyncDirective implements OnDestroy {
   @Input('filterGroupParamSync') ctrl: AbstractControl | any;
+  @Input()
+  defaultValue: Observable<any> | any;
 
+  @Input()
+  storageSync: StoreFilter;
+
+  @Input()
+  queryParamName: string;
+
+  @Input()
+  queryParamTo: (value: any) => any;
+
+  @Input()
+  queryParamFrom: (value: any) => any;
+  destory$ = new Subject();
   constructor(
-    @Optional() protected controlContainer: ControlContainer,
-    protected router: Router,
-    protected activedRoute: ActivatedRoute,
-    protected queryParamUtils: QueryParamInitService
-  ) {
-    super(controlContainer, router, activedRoute, queryParamUtils);
+    @Optional() private controlContainer: ControlContainer,
+    private router: Router,
+    private activedRoute: ActivatedRoute
+  ) {}
+
+  get key(): string {
+    if (this.queryParamName) {
+      return this.queryParamName;
+    }
+    return null;
+  }
+
+  get value() {
+    if (this.ctrl) {
+      return this.ctrl.value;
+    }
+    return this.control.value;
+  }
+
+  get control(): AbstractControl {
+    if (this.ctrl) {
+      return this.ctrl;
+    }
+    return this.controlContainer.control;
+  }
+
+  async ngOnInit() {
+    await this.init();
+    this.control.valueChanges
+      ?.pipe(
+        debounceTime(500),
+        distinctUntilChanged(isEqual),
+        takeUntil(this.destory$)
+      )
+      .subscribe((resp) => {
+        this.saveToStorage(resp);
+        this.updateQueryParam();
+      });
+    this.activedRoute.queryParams
+      .pipe(
+        takeUntil(this.destory$),
+        filter(() => !this.isQueryAndFormSync())
+      )
+      .subscribe((resp) => {
+        const data = this.getQueryParam();
+        this.patchValue(data);
+        this.saveToStorage(data);
+      });
+  }
+
+  async init() {
+    const queryParamData = this.getQueryParam();
+    const storageData = this.getFromStorage();
+    if (queryParamData) {
+      this.patchValue(queryParamData);
+      this.saveToStorage(queryParamData);
+    } else if (storageData) {
+      this.patchValue(storageData);
+      this.initParam();
+    }
+    console.log('init finished');
+    // let data = this.getQueryParam() || this.getFromStorage() || this.value || null;
+
+    // this.saveToStorage(data || this.defaultValue);
   }
 
   getQueryParam() {
@@ -37,6 +114,31 @@ export class FilterGroupParamSyncDirective
     return null;
   }
 
+  updateQueryParam() {
+    if (this.isQueryAndFormSync()) {
+      return;
+    }
+
+    this.router.navigate([], {
+      relativeTo: this.activedRoute,
+      queryParams: {
+        [this.key]: this.getDataForQueryParam(),
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  private initParam() {
+    this.router.navigate([], {
+      relativeTo: this.activedRoute,
+      queryParams: {
+        [this.key]: this.getDataForQueryParam(),
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   getDataForQueryParam() {
     let value = this.value;
     if (typeof this.queryParamTo === 'function') {
@@ -45,5 +147,32 @@ export class FilterGroupParamSyncDirective
       value = JSON.stringify(this.value);
     }
     return value;
+  }
+
+  isQueryAndFormSync(): Boolean {
+    const param = this.getQueryParam();
+    return isEqual(param, this.value);
+  }
+
+  patchValue(data: any) {
+    if (data !== null) {
+      this.control?.patchValue(data);
+    }
+  }
+
+  saveToStorage(data: any) {
+    if (data === null) {
+      data = '';
+    }
+    this.storageSync?.save(this.key, data);
+  }
+
+  getFromStorage() {
+    return this.storageSync?.query(this.key);
+  }
+
+  ngOnDestroy(): void {
+    this.destory$.next();
+    this.destory$.complete();
   }
 }

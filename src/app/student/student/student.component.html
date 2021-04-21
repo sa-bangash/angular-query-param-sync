@@ -1,11 +1,5 @@
-<form
-  [formGroup]="form"
-  filterGroupParamSync
-  filterParamStorage="books"
-  #storage="paramStorage"
-  queryParamName="filter-v1"
-  [storageSync]="storage"
->
+<h1>Student</h1>
+<form [formGroup]="form">
   <input type="text" formControlName="search" />
   <select formControlName="booksName" multiple>
     <option [ngValue]="1">Volvo 1</option>
@@ -20,5 +14,4 @@
     formControlName="date"
   />
 </form>
-<button routerLink="/signup">signup</button>
-<button routerLink="/student">Student</button>
+<button routerLink="/books">signup</button>

@@ -6,31 +6,38 @@ import { Directive, Input } from '@angular/core';
 })
 export class FilterParamStorage {
   @Input('filterParamStorage') nameSpaceKey: string = '';
+  @Input() storageTo: (value: any) => any;
 
-  save(controlKey: string, value: any) {
-    if (!this.nameSpaceKey) {
-      localStorage.setItem(controlKey, value);
-      return;
+  getKey(queryKey: string) {
+    if (this.nameSpaceKey) {
+      return `__filter__${this.nameSpaceKey}`;
     }
-    const data = this.getCollection();
+    return `__filter__${queryKey}`;
+  }
+  save(queryKey: string, value: any) {
+    let data = this.getCollection();
+    let param = value;
+    if (this.storageTo instanceof Function) {
+      param = this.storageTo(value);
+    }
     localStorage.setItem(
-      this.nameSpaceKey,
+      this.getKey(queryKey),
       JSON.stringify({
         ...data,
-        [controlKey]: value,
+        [queryKey]: param,
       })
     );
   }
   getCollection() {
-    return JSON.parse(localStorage.getItem(this.nameSpaceKey));
+    return JSON.parse(localStorage.getItem(this.getKey(null)));
   }
-  query(controlName: string) {
+  query(queryKey: string) {
     if (!this.nameSpaceKey) {
-      return localStorage.getItem(controlName);
+      return localStorage.getItem(this.getKey(queryKey));
     }
     const data = this.getCollection();
     if (data) {
-      return data[controlName];
+      return data[queryKey];
     }
   }
 }

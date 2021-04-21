@@ -2,22 +2,41 @@ import { Injectable } from '@angular/core';
 
 @Injectable()
 export class FilterStoreService {
-  featureKey: string = '';
-  setFeatureKey(value: string) {
-    this.featureKey = value;
+  nameSpaceKey: string = '';
+  setFeatureKey(key: string) {
+    this.nameSpaceKey = key;
   }
-  save(controlKey: string, value: any) {
-    localStorage.setItem(this.getBuildKey(controlKey), value);
-  }
-
-  query(controlName: string) {
-    return localStorage.getItem(this.getBuildKey(controlName));
-  }
-
-  private getBuildKey(controlKey: string): string {
-    if (this.featureKey) {
-      return `${this.featureKey}_${controlKey}`;
+  storageTo: (value: any) => any;
+  getKey(queryKey: string) {
+    if (this.nameSpaceKey) {
+      return `__filter__${this.nameSpaceKey}`;
     }
-    return null;
+    return `__filter__${queryKey}`;
+  }
+  save(queryKey: string, value: any) {
+    let data = this.getCollection();
+    let param = value;
+    if (this.storageTo instanceof Function) {
+      param = this.storageTo(value);
+    }
+    localStorage.setItem(
+      this.getKey(queryKey),
+      JSON.stringify({
+        ...data,
+        [queryKey]: param,
+      })
+    );
+  }
+  getCollection() {
+    return JSON.parse(localStorage.getItem(this.getKey(null)));
+  }
+  query(queryKey: string) {
+    if (!this.nameSpaceKey) {
+      return localStorage.getItem(this.getKey(queryKey));
+    }
+    const data = this.getCollection();
+    if (data) {
+      return data[queryKey];
+    }
   }
 }
