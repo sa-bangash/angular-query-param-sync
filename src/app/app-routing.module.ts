@@ -19,7 +19,7 @@ const routes: Routes = [
     path: 'signup',
   },
   {
-    component: BooksComponent,
+    loadChildren: () => import('./books/book.module').then((m) => m.BookModule),
     path: 'books',
   },
 ];

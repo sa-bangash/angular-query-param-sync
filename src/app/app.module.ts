@@ -7,7 +7,7 @@ import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
 import { BooksComponent } from './books/books.component';
-import { QueryParamSyncModule } from './query-param-sync/query-param-sync.module';
+import { ShareModule } from './share/share.module';
 
 @NgModule({
   declarations: [AppComponent, LoginComponent, SignupComponent, BooksComponent],
@@ -16,7 +16,7 @@ import { QueryParamSyncModule } from './query-param-sync/query-param-sync.module
     AppRoutingModule,
     ReactiveFormsModule,
     FormsModule,
-    QueryParamSyncModule,
+    ShareModule,
   ],
   providers: [],
   bootstrap: [AppComponent],
