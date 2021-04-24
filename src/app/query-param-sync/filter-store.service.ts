@@ -19,6 +19,7 @@ export class FilterStoreService {
     if (this.storageTo instanceof Function) {
       param = this.storageTo(value);
     }
+    console.log('saving', this.getKey(queryKey), queryKey, param);
     localStorage.setItem(
       this.getKey(queryKey),
       JSON.stringify({

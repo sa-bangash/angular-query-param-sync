@@ -13,7 +13,7 @@ import { FilterParamService } from './filter-param.service';
     FilterParamStorage,
     FilterGroupParamSyncDirective,
   ],
-  providers: [FilterStoreService, FilterParamService],
+  providers: [FilterStoreService],
   imports: [CommonModule],
 })
 export class QueryParamSyncModule {}

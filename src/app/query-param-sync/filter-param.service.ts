@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { AbstractControl, FormGroup } from '@angular/forms';
+import { AbstractControl, Form, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
@@ -7,45 +7,56 @@ import {
   debounceTime,
   distinctUntilChanged,
   filter,
+  skip,
   takeUntil,
+  tap,
 } from 'rxjs/operators';
+import { CONTROL_TYPES, parse } from './utils';
 
 interface StoreFilter {
   save(key: string, value: string): void;
   query(key: string): any;
 }
+interface QueryParamFilterConfig {
+  source: FormGroup;
+  mataData: MataData[];
+  storageName?: string;
+}
+interface MataData {
+  type?: CONTROL_TYPES;
+  queryName: string;
+}
 
-@Injectable()
 export class FilterParamService {
-  private ctrl: AbstractControl | any;
-
-  private queryParamName: string;
-
+  private _mataData: MataData[];
+  private source: FormGroup;
+  private storageName: string;
   private queryParamTo: (value: any) => any;
 
   private queryParamFrom: (value: any) => any;
 
-  storageSync: StoreFilter;
-
   destory$ = new Subject();
-  constructor(private router: Router, private activedRoute: ActivatedRoute) {}
+  constructor(private router: Router, private activedRoute: ActivatedRoute) {
+    this.router.navigateByUrl;
+  }
 
-  async init(
-    crtl: AbstractControl,
-    config: { queryParamName: string; storage?: StoreFilter }
-  ) {
-    this.ctrl = crtl;
-    this.storageSync = config.storage;
-    this.queryParamName = config.queryParamName;
+  private initilize(config: QueryParamFilterConfig) {
+    this.source = config.source;
+    this._mataData = config.mataData;
+    this.storageName = config.storageName;
+  }
+
+  async connect(config: QueryParamFilterConfig) {
+    this.initilize(config);
     const queryParamData = this.getQueryParam();
-    const storageData = this.getFromStorage();
+    const storageSearch = this.getFromStorage();
     if (queryParamData) {
       this.patchValue(queryParamData);
-      this.saveToStorage(queryParamData);
-    } else if (storageData) {
-      this.patchValue(storageData);
+    } else if (storageSearch) {
+      await this.initParamByString(storageSearch);
+    } else {
       await this.initParam().then((resp) => {
-        console.log('afterinit', resp);
+        console.log('init for form value', resp);
       });
     }
 
@@ -56,28 +67,53 @@ export class FilterParamService {
         takeUntil(this.destory$)
       )
       .subscribe((resp) => {
-        this.saveToStorage(resp);
+        console.log('control value changes');
         this.updateQueryParam();
       });
     this.activedRoute.queryParams
       .pipe(
         takeUntil(this.destory$),
+        tap((resp) => {
+          console.log('param change occure');
+          this.saveToStorage();
+        }),
         filter(() => !this.isQueryAndFormSync())
       )
       .subscribe((resp) => {
-        console.log('called');
+        console.log('param changes subscribe called');
         const data = this.getQueryParam();
         this.patchValue(data);
-        this.saveToStorage(data);
+        this.saveToStorage();
       });
+    return queryParamData;
   }
-
-  private initParam() {
+  getFromStorage() {
+    if (this.storageName) {
+      const searchUrl = localStorage.getItem(this.storageName);
+      if (searchUrl) {
+        return searchUrl;
+      }
+    }
+    return null;
+  }
+  saveToStorage() {
+    const searchUrl = location.search;
+    if (searchUrl && this.storageName) {
+      localStorage.setItem(this.storageName, searchUrl);
+    }
+  }
+  private initParamByString(data: string) {
+    this.router.navigateByUrl(this.router.url + data, {
+      replaceUrl: true,
+      skipLocationChange: true,
+    });
+  }
+  private initParam(data?: any) {
+    const paramData = data || this.getDataForQueryParam();
+    console.log(this.getDataForQueryParam());
     return this.router.navigate([], {
       relativeTo: this.activedRoute,
-      queryParams: {
-        [this.key]: this.getDataForQueryParam(),
-      },
+      queryParams: paramData,
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });
@@ -88,57 +124,49 @@ export class FilterParamService {
     if (typeof this.queryParamTo === 'function') {
       value = this.queryParamTo(this.value);
     } else if (this.control instanceof FormGroup) {
-      value = JSON.stringify(this.value);
+      value = this.value;
     }
     return value;
   }
 
   get value() {
-    if (this.ctrl) {
-      return this.ctrl.value;
+    if (this.source) {
+      return this.source.value;
     }
     return this.control.value;
   }
 
-  saveToStorage(data: any) {
-    if (data === null) {
-      data = '';
-    }
-    this.storageSync?.save(this.key, data);
-  }
-
   patchValue(data: any) {
     if (data !== null) {
+      // for simple control than need to be set to null
       this.control?.patchValue(data);
+    } else {
+      this.control.reset();
     }
   }
 
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
-    if (data && data[this.key]) {
-      if (typeof this.queryParamFrom === 'function') {
-        return this.queryParamFrom(data[this.key]);
-      } else if (this.control instanceof FormGroup) {
-        return JSON.parse(data[this.key]);
+    if (Object.keys(data).length) {
+      const mataData = this._mataData;
+      let parseData: Record<string, any> = {};
+      if (mataData) {
+        for (const mata of mataData) {
+          if (data[mata.queryName] && mata.type) {
+            parseData[mata.queryName] = parse(data[mata.queryName], mata.type);
+          } else {
+            parseData[mata.queryName] = data[mata.queryName];
+          }
+        }
+        return parseData;
       }
-      return data[this.key];
+      return data;
     }
     return null;
   }
 
   get control(): AbstractControl {
-    return this.ctrl;
-  }
-
-  get key(): string {
-    if (this.queryParamName) {
-      return this.queryParamName;
-    }
-    return null;
-  }
-
-  getFromStorage() {
-    return this.storageSync?.query(this.key);
+    return this.source;
   }
 
   isQueryAndFormSync(): Boolean {
@@ -154,9 +182,10 @@ export class FilterParamService {
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {
-        [this.key]: this.getDataForQueryParam(),
+        ...this.getDataForQueryParam(),
       },
       queryParamsHandling: 'merge',
+      // skipLocationChange: true,
     });
   }
 
