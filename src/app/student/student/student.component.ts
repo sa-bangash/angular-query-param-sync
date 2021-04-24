@@ -55,7 +55,7 @@ export class StudentComponent implements OnInit, OnDestroy {
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
       .subscribe((resp) => {
-        // console.log('book backend called', this.form.value);
+        console.log('book backend called', this.form.value);
       });
   }
   ngOnDestroy(): void {

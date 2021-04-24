@@ -105,7 +105,6 @@ export class FilterParamService {
   private initParamByString(data: string) {
     this.router.navigateByUrl(this.router.url + data, {
       replaceUrl: true,
-      skipLocationChange: true,
     });
   }
   private initParam(data?: any) {
