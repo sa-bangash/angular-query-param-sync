@@ -4,7 +4,7 @@ import { FilterParamSync } from './filter-param-sync.directive';
 import { FilterParamStorage } from './filter-param-storage.directive';
 import { FilterGroupParamSyncDirective } from './filter-group-param-sync.directive';
 import { FilterStoreService } from './filter-store.service';
-import { FilterParamService } from './filter-param.service';
+import { FilterParamService } from '../param-sync/filter-param.service';
 
 @NgModule({
   exports: [FilterParamSync, FilterParamStorage, FilterGroupParamSyncDirective],

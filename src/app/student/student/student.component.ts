@@ -4,9 +4,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
-import { FilterParamService } from 'src/app/query-param-sync/filter-param.service';
+import { FilterParamService } from 'src/app/param-sync/filter-param.service';
 import { FilterStoreService } from 'src/app/query-param-sync/filter-store.service';
-import { CONTROL_TYPES } from 'src/app/query-param-sync/utils';
+import { CONTROL_TYPES } from 'src/app/param-sync/utils';
+import { FilterParamFactoryService } from 'src/app/param-sync/filter-param-factory.service';
 
 @Component({
   selector: 'app-student',
@@ -16,7 +17,7 @@ import { CONTROL_TYPES } from 'src/app/query-param-sync/utils';
 })
 export class StudentComponent implements OnInit, OnDestroy {
   form: FormGroup;
-  filterParamService: FilterParamService;
+  queryParamFilter: FilterParamService;
   users = [
     {
       id: 1,
@@ -45,9 +46,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   ];
   constructor(
     private fb: FormBuilder,
-    public filterStoreService: FilterStoreService,
-    public router: Router,
-    public activeRouter: ActivatedRoute
+    public queryParamSyncFactory: FilterParamFactoryService
   ) {
     this.form = this.fb.group({
       booksName: [],
@@ -56,13 +55,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       user: [this.users[0]],
     });
 
-    this.filterParamService = new FilterParamService(
-      this.router,
-      this.activeRouter
-    );
-
-    this.filterStoreService.setFeatureKey('Students');
-    this.filterParamService.connect({
+    this.queryParamFilter = this.queryParamSyncFactory.create({
       source: this.form,
       storageName: 'Student',
       mataData: [
@@ -88,22 +81,15 @@ export class StudentComponent implements OnInit, OnDestroy {
           },
           compareWith: (param, form) => param === form.id,
           parser: (value: string) => {
-            // const valuesArray = value.split(',');
-            // const result = {
-            //   id: +valuesArray[0],
-            //   name: valuesArray[1],
-            // };
             return +value;
           },
           serializer: (value) => {
-            // if (value) {
-            //   return `${value.id},${value.name}`;
-            // }
             return value.id;
           },
         },
       ],
     });
+    this.queryParamFilter.sync();
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
       .subscribe((resp) => {
@@ -112,7 +98,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void {
     console.log('destory caled');
-    this.filterParamService.destory();
+    this.queryParamFilter.destory();
   }
   compareFn(a: any, b: any) {
     return a.id === b.id;

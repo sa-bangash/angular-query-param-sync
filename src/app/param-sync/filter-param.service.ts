@@ -11,37 +11,20 @@ import {
   takeUntil,
   tap,
 } from 'rxjs/operators';
+import { MataData, QueryParamFilterConfig } from './param.model';
 import { CONTROL_TYPES, parse } from './utils';
-
-interface StoreFilter {
-  save(key: string, value: string): void;
-  query(key: string): any;
-}
-interface QueryParamFilterConfig {
-  source: FormGroup;
-  mataData: MataData[];
-  storageName?: string;
-}
-interface MataData {
-  type?: CONTROL_TYPES;
-  queryName: string;
-  serializer?: (value: any) => any;
-  parser?: (value: any) => any;
-  compareWith?: (param: any, form: any) => boolean;
-  patch?: (value: any) => any;
-}
-
 export class FilterParamService {
   private _mataData: MataData[];
   private source: FormGroup;
   private storageName: string;
-  private queryParamTo: (value: any) => any;
-
-  private queryParamFrom: (value: any) => any;
 
   destory$ = new Subject();
-  constructor(private router: Router, private activedRoute: ActivatedRoute) {
-    this.router.navigateByUrl;
+  constructor(
+    private router: Router,
+    private activedRoute: ActivatedRoute,
+    private config: QueryParamFilterConfig
+  ) {
+    this.initilize(this.config);
   }
 
   private initilize(config: QueryParamFilterConfig) {
@@ -50,8 +33,7 @@ export class FilterParamService {
     this.storageName = config.storageName;
   }
 
-  async connect(config: QueryParamFilterConfig) {
-    this.initilize(config);
+  async sync() {
     const queryParamData = this.getQueryParam();
     const storageSearch = this.getFromStorage();
     if (queryParamData) {
@@ -68,7 +50,8 @@ export class FilterParamService {
       ?.pipe(
         debounceTime(500),
         distinctUntilChanged(isEqual),
-        takeUntil(this.destory$)
+        takeUntil(this.destory$),
+        filter(() => !this.isQueryAndFormSync())
       )
       .subscribe((resp) => {
         console.log('control value changes');
@@ -87,7 +70,6 @@ export class FilterParamService {
         console.log('param changes subscribe called');
         const data = this.getQueryParam();
         this.patchValue(data);
-        this.saveToStorage();
       });
     return queryParamData;
   }
@@ -112,8 +94,7 @@ export class FilterParamService {
     });
   }
   private initParam(data?: any) {
-    const paramData = data || this.getDataForQueryParam();
-    console.log(this.getDataForQueryParam());
+    const paramData = data || this.serilizeParam();
     return this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: paramData,
@@ -122,7 +103,7 @@ export class FilterParamService {
     });
   }
 
-  getDataForQueryParam() {
+  serilizeParam(): Record<string, string> {
     let result: Record<string, string> = {};
     for (let mata of this._mataData) {
       const paramValue = this.source.get(mata.queryName).value;
@@ -203,22 +184,16 @@ export class FilterParamService {
         return false;
       }
     }
-
     return isSame;
   }
 
   updateQueryParam() {
-    if (this.isQueryAndFormSync()) {
-      return;
-    }
-
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {
-        ...this.getDataForQueryParam(),
+        ...this.serilizeParam(),
       },
       queryParamsHandling: 'merge',
-      // skipLocationChange: true,
     });
   }
 
