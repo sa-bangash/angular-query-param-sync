@@ -18,32 +18,7 @@ import { FilterParamFactoryService } from 'src/app/param-sync/filter-param-facto
 export class StudentComponent implements OnInit, OnDestroy {
   form: FormGroup;
   queryParamFilter: FilterParamService;
-  users = [
-    {
-      id: 1,
-      name: 'shahid1',
-      topic: {
-        id: 62,
-        name: 'some Topic',
-      },
-    },
-    {
-      id: 2,
-      name: 'shahid2',
-      topic: {
-        id: 22,
-        name: 'some Topic',
-      },
-    },
-    {
-      id: 3,
-      name: 'shahid3',
-      topic: {
-        id: 32,
-        name: 'some Topic',
-      },
-    },
-  ];
+  users: any = [];
   constructor(
     private fb: FormBuilder,
     public queryParamSyncFactory: FilterParamFactoryService
@@ -75,7 +50,7 @@ export class StudentComponent implements OnInit, OnDestroy {
           type: CONTROL_TYPES.OBJECT,
           patch: (value) => {
             console.log('-----value in patch', value);
-            const findUser = this.users.find((user) => user.id === value);
+            const findUser = this.users.find((user: any) => user.id === value);
             console.log('finduser', findUser);
             return findUser;
           },
@@ -89,7 +64,11 @@ export class StudentComponent implements OnInit, OnDestroy {
         },
       ],
     });
-    this.queryParamFilter.sync();
+    fetchUsers().then((resp) => {
+      this.users = resp;
+      this.queryParamFilter.sync();
+      console.log('sync called');
+    });
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
       .subscribe((resp) => {
@@ -104,4 +83,37 @@ export class StudentComponent implements OnInit, OnDestroy {
     return a.id === b.id;
   }
   ngOnInit(): void {}
+}
+
+function fetchUsers(): Promise<any> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve([
+        {
+          id: 1,
+          name: 'shahid1',
+          topic: {
+            id: 62,
+            name: 'some Topic',
+          },
+        },
+        {
+          id: 2,
+          name: 'shahid2',
+          topic: {
+            id: 22,
+            name: 'some Topic',
+          },
+        },
+        {
+          id: 3,
+          name: 'shahid3',
+          topic: {
+            id: 32,
+            name: 'some Topic',
+          },
+        },
+      ]);
+    }, 2000);
+  });
 }
