@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { AbstractControl, Form, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { isEqual } from 'lodash';
+import { isEqual, isEqualWith } from 'lodash';
 import { Subject } from 'rxjs';
 import {
   debounceTime,
@@ -26,6 +26,9 @@ interface MataData {
   type?: CONTROL_TYPES;
   queryName: string;
   serializer?: (value: any) => any;
+  parser?: (value: any) => any;
+  compareWith?: (param: any, form: any) => boolean;
+  patch?: (value: any) => any;
 }
 
 export class FilterParamService {
@@ -138,8 +141,15 @@ export class FilterParamService {
 
   patchValue(data: any) {
     if (data !== null) {
-      // for simple control than need to be set to null
-      this.control?.patchValue(data);
+      let result: Record<string, any> = {};
+      for (let mata of this._mataData) {
+        if (mata.patch) {
+          result[mata.queryName] = mata.patch(data[mata.queryName]);
+        } else {
+          result[mata.queryName] = data[mata.queryName];
+        }
+      }
+      this.control?.patchValue(result);
     } else {
       this.control.reset();
     }
@@ -152,10 +162,17 @@ export class FilterParamService {
       let parseData: Record<string, any> = {};
       if (mataData) {
         for (const mata of mataData) {
-          if (data[mata.queryName] && mata.type) {
-            parseData[mata.queryName] = parse(data[mata.queryName], mata.type);
+          if (mata.parser) {
+            parseData[mata.queryName] = mata.parser(data[mata.queryName]);
           } else {
-            parseData[mata.queryName] = data[mata.queryName];
+            if (data[mata.queryName] && mata.type) {
+              parseData[mata.queryName] = parse(
+                data[mata.queryName],
+                mata.type
+              );
+            } else {
+              parseData[mata.queryName] = data[mata.queryName];
+            }
           }
         }
         return parseData;
@@ -171,7 +188,23 @@ export class FilterParamService {
 
   isQueryAndFormSync(): Boolean {
     const param = this.getQueryParam();
-    return isEqual(param, this.value);
+    const formValue = this.value;
+    let isSame = true;
+    for (let mata of this._mataData) {
+      if (mata.compareWith) {
+        isSame = mata.compareWith(
+          param[mata.queryName],
+          formValue[mata.queryName]
+        );
+      } else {
+        isSame = isEqual(param[mata.queryName], formValue[mata.queryName]);
+      }
+      if (!isSame) {
+        return false;
+      }
+    }
+
+    return isSame;
   }
 
   updateQueryParam() {

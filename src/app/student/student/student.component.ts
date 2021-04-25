@@ -20,26 +20,26 @@ export class StudentComponent implements OnInit, OnDestroy {
   users = [
     {
       id: 1,
-      name: 'shahid 1',
+      name: 'shahid1',
       topic: {
-        topic: 62,
-        topicName: 'some Topic',
+        id: 62,
+        name: 'some Topic',
       },
     },
     {
       id: 2,
-      name: 'shahid 2',
+      name: 'shahid2',
       topic: {
-        topic: 22,
-        topicName: 'some Topic',
+        id: 22,
+        name: 'some Topic',
       },
     },
     {
       id: 3,
-      name: 'shahid 3',
+      name: 'shahid3',
       topic: {
-        topic: 32,
-        topicName: 'some Topic',
+        id: 32,
+        name: 'some Topic',
       },
     },
   ];
@@ -80,7 +80,27 @@ export class StudentComponent implements OnInit, OnDestroy {
         {
           queryName: 'user',
           type: CONTROL_TYPES.OBJECT,
-          serializer: (value) => JSON.stringify(value),
+          patch: (value) => {
+            console.log('-----value in patch', value);
+            const findUser = this.users.find((user) => user.id === value);
+            console.log('finduser', findUser);
+            return findUser;
+          },
+          compareWith: (param, form) => param === form.id,
+          parser: (value: string) => {
+            // const valuesArray = value.split(',');
+            // const result = {
+            //   id: +valuesArray[0],
+            //   name: valuesArray[1],
+            // };
+            return +value;
+          },
+          serializer: (value) => {
+            // if (value) {
+            //   return `${value.id},${value.name}`;
+            // }
+            return value.id;
+          },
         },
       ],
     });
