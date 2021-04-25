@@ -33,6 +33,9 @@ export function parse(value: any, valueType: CONTROL_TYPES) {
     case CONTROL_TYPES.NUMBER: {
       return +value;
     }
+    case CONTROL_TYPES.OBJECT: {
+      return JSON.parse(value);
+    }
   }
   return value;
 }

@@ -25,6 +25,7 @@ interface QueryParamFilterConfig {
 interface MataData {
   type?: CONTROL_TYPES;
   queryName: string;
+  serializer?: (value: any) => any;
 }
 
 export class FilterParamService {
@@ -120,12 +121,13 @@ export class FilterParamService {
 
   getDataForQueryParam() {
     let value = this.value;
-    if (typeof this.queryParamTo === 'function') {
-      value = this.queryParamTo(this.value);
-    } else if (this.control instanceof FormGroup) {
-      value = this.value;
+    let result: Record<string, string> = {};
+    for (let mata of this._mataData) {
+      const paramValue = this.source.get(mata.queryName).value;
+      const serilizedValue = mata.serializer?.(paramValue) || value.toString();
+      result[mata.queryName] = serilizedValue || null;
     }
-    return value;
+    return result;
   }
 
   get value() {

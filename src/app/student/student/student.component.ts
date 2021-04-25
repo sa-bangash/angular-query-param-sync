@@ -17,6 +17,32 @@ import { CONTROL_TYPES } from 'src/app/query-param-sync/utils';
 export class StudentComponent implements OnInit, OnDestroy {
   form: FormGroup;
   filterParamService: FilterParamService;
+  users = [
+    {
+      id: 1,
+      name: 'shahid 1',
+      topic: {
+        topic: 62,
+        topicName: 'some Topic',
+      },
+    },
+    {
+      id: 2,
+      name: 'shahid 2',
+      topic: {
+        topic: 22,
+        topicName: 'some Topic',
+      },
+    },
+    {
+      id: 3,
+      name: 'shahid 3',
+      topic: {
+        topic: 32,
+        topicName: 'some Topic',
+      },
+    },
+  ];
   constructor(
     private fb: FormBuilder,
     public filterStoreService: FilterStoreService,
@@ -27,6 +53,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       booksName: [],
       search: [],
       date: [],
+      user: [this.users[0]],
     });
 
     this.filterParamService = new FilterParamService(
@@ -50,6 +77,11 @@ export class StudentComponent implements OnInit, OnDestroy {
         {
           queryName: 'date',
         },
+        {
+          queryName: 'user',
+          type: CONTROL_TYPES.OBJECT,
+          serializer: (value) => JSON.stringify(value),
+        },
       ],
     });
     this.form.valueChanges
@@ -62,6 +94,8 @@ export class StudentComponent implements OnInit, OnDestroy {
     console.log('destory caled');
     this.filterParamService.destory();
   }
-
+  compareFn(a: any, b: any) {
+    return a.id === b.id;
+  }
   ngOnInit(): void {}
 }
