@@ -120,11 +120,10 @@ export class FilterParamService {
   }
 
   getDataForQueryParam() {
-    let value = this.value;
     let result: Record<string, string> = {};
     for (let mata of this._mataData) {
       const paramValue = this.source.get(mata.queryName).value;
-      const serilizedValue = mata.serializer?.(paramValue) || value.toString();
+      const serilizedValue = mata.serializer?.(paramValue) || paramValue;
       result[mata.queryName] = serilizedValue || null;
     }
     return result;
