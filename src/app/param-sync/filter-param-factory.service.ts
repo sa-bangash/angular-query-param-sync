@@ -12,7 +12,11 @@ export class FilterParamFactoryService {
     private activatedRouter: ActivatedRoute
   ) {}
 
-  create(config: QueryParamFilterConfig): FilterParamService {
-    return new FilterParamService(this.router, this.activatedRouter, config);
+  async create(config: QueryParamFilterConfig): Promise<FilterParamService> {
+    const filterService = new FilterParamService(
+      this.router,
+      this.activatedRouter
+    );
+    return await filterService.initilize(config);
   }
 }

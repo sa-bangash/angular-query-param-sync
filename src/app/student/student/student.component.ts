@@ -19,6 +19,7 @@ export class StudentComponent implements OnInit, OnDestroy {
   form: FormGroup;
   queryParamFilter: FilterParamService;
   users: any = [];
+  selectedUser: any;
   constructor(
     private fb: FormBuilder,
     public queryParamSyncFactory: FilterParamFactoryService
@@ -27,68 +28,88 @@ export class StudentComponent implements OnInit, OnDestroy {
       booksName: [],
       search: [],
       date: [],
-      user: [this.users[0]],
+      user: [],
     });
 
-    this.queryParamFilter = this.queryParamSyncFactory.create({
-      source: this.form,
-      storageName: 'Student',
-      mataData: [
-        {
-          type: CONTROL_TYPES.INT_ARRAY,
-          queryName: 'booksName',
-        },
-        {
-          queryName: 'search',
-          type: CONTROL_TYPES.STRING,
-        },
-        {
-          queryName: 'date',
-        },
-        {
-          queryName: 'user',
-          type: CONTROL_TYPES.OBJECT,
-          patch: (value) => {
-            console.log('-----value in patch', value);
-            const findUser = this.users.find((user: any) => user.id === value);
-            console.log('finduser', findUser);
-            return findUser;
+    this.queryParamSyncFactory
+      .create({
+        source: this.form,
+        storageName: 'Student',
+        mataData: [
+          {
+            type: CONTROL_TYPES.INT_ARRAY,
+            queryName: 'booksName',
           },
-          compareWith: (param, form) => param === form.id,
-          parser: (value: string) => {
-            return +value;
+          {
+            queryName: 'search',
+            type: CONTROL_TYPES.STRING,
           },
-          serializer: (value) => {
-            return value.id;
+          {
+            queryName: 'date',
           },
-        },
-      ],
-    });
-    fetchUsers().then((resp) => {
-      this.users = resp;
-      this.queryParamFilter.sync();
+          {
+            queryName: 'user',
+            type: CONTROL_TYPES.OBJECT,
+            resolver: async (val) => {
+              console.log('called resolver', val);
+              if (val) {
+                return fetchUsers(val).then((resp) => {
+                  console.log('user fetch', resp);
+                  return resp;
+                });
+              }
+              return null;
+            },
+            compareWith: (param, form) => param === form?.id,
+            parser: (value: string) => {
+              return +value;
+            },
+            serializer: (value) => {
+              if (value) {
+                return value.id;
+              }
+            },
+          },
+        ],
+      })
+      .then((instance) => {
+        this.queryParamFilter = instance;
+        return instance.resolveTheResolver().then(() => instance);
+      })
+      .then((instance) => {
+        console.log(instance);
+        instance.sync();
+      });
+
+    fetchUsers().then((users) => {
+      console.log('esolv', users);
+      this.users = users;
       console.log('sync called');
     });
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
       .subscribe((resp) => {
-        console.log('book backend called', this.form.value);
+        console.log('backend called', resp);
       });
   }
+
   ngOnDestroy(): void {
     console.log('destory caled');
     this.queryParamFilter.destory();
   }
   compareFn(a: any, b: any) {
-    return a.id === b.id;
+    if (a && b) {
+      return a.id === b.id;
+    }
+    return false;
   }
   ngOnInit(): void {}
 }
 
-function fetchUsers(): Promise<any> {
+function fetchUsers(id?: number): Promise<any> {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve([
+      const result = [
         {
           id: 1,
           name: 'shahid1',
@@ -113,7 +134,17 @@ function fetchUsers(): Promise<any> {
             name: 'some Topic',
           },
         },
-      ]);
-    }, 2000);
+      ].filter((i) => {
+        if (!id) {
+          return true;
+        }
+        return id === i.id;
+      });
+      if (id) {
+        resolve(result[0]);
+      } else {
+        resolve(result);
+      }
+    }, 1000);
   });
 }

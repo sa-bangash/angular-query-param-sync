@@ -12,34 +12,50 @@ import {
   tap,
 } from 'rxjs/operators';
 import { MataData, QueryParamFilterConfig } from './param.model';
-import { CONTROL_TYPES, parse } from './utils';
+import { CONTROL_TYPES, isObjectEmpty, parse } from './utils';
 export class FilterParamService {
   private _mataData: MataData[];
   private source: FormGroup;
   private storageName: string;
 
   destory$ = new Subject();
-  constructor(
-    private router: Router,
-    private activedRoute: ActivatedRoute,
-    private config: QueryParamFilterConfig
-  ) {
-    this.initilize(this.config);
-  }
+  constructor(private router: Router, private activedRoute: ActivatedRoute) {}
 
-  private initilize(config: QueryParamFilterConfig) {
+  async initilize(config: QueryParamFilterConfig) {
     this.source = config.source;
     this._mataData = config.mataData;
     this.storageName = config.storageName;
+    await this.initUrlFromStorage();
+    return this;
   }
 
+  async resolveTheResolver(): Promise<any> {
+    const queryParam = this.getQueryParam();
+    return Promise.all(
+      this._mataData
+        .filter((mata) => mata.resolver)
+        .map((mata) => {
+          return mata.resolver(queryParam[mata.queryName]).then((resp) => {
+            mata.resolveData = resp;
+            return resp;
+          });
+        })
+    );
+  }
+
+  async initUrlFromStorage() {
+    const queryParamData = this.getQueryParam();
+    if (isObjectEmpty(queryParamData)) {
+      const storageParam = this.getFromStorage();
+      if (storageParam) {
+        await this.initParamByString(storageParam);
+      }
+    }
+  }
   async sync() {
     const queryParamData = this.getQueryParam();
-    const storageSearch = this.getFromStorage();
-    if (queryParamData) {
+    if (!isObjectEmpty(queryParamData)) {
       this.patchValue(queryParamData);
-    } else if (storageSearch) {
-      await this.initParamByString(storageSearch);
     } else {
       await this.initParam().then((resp) => {
         console.log('init for form value', resp);
@@ -125,9 +141,11 @@ export class FilterParamService {
       let result: Record<string, any> = {};
       for (let mata of this._mataData) {
         if (mata.patch) {
-          result[mata.queryName] = mata.patch(data[mata.queryName]);
+          result[mata.queryName] = mata.patch(
+            mata.resolveData || data[mata.queryName]
+          );
         } else {
-          result[mata.queryName] = data[mata.queryName];
+          result[mata.queryName] = mata.resolveData || data[mata.queryName];
         }
       }
       this.control?.patchValue(result);
@@ -160,7 +178,7 @@ export class FilterParamService {
       }
       return data;
     }
-    return null;
+    return data;
   }
 
   get control(): AbstractControl {

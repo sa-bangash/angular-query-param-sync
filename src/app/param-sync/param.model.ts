@@ -13,4 +13,6 @@ export interface MataData {
   parser?: (value: any) => any;
   compareWith?: (param: any, form: any) => boolean;
   patch?: (value: any) => any;
+  resolver?: (value: any) => Promise<any>;
+  resolveData?: any;
 }

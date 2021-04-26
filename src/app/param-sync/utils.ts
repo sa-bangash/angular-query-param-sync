@@ -39,3 +39,7 @@ export function parse(value: any, valueType: CONTROL_TYPES) {
   }
   return value;
 }
+
+export function isObjectEmpty(obj: any): boolean {
+  return !!!Object.keys(obj || {}).length;
+}
