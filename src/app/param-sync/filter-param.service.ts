@@ -10,9 +10,11 @@ import {
   tap,
 } from 'rxjs/operators';
 import { MataData, QueryParamFilterConfig } from './param.model';
+import { ParamConfigService } from './paramConfigService';
 import { CONTROL_TYPES, isObjectEmpty, parse } from './utils';
 export class FilterParamService {
   private _mataData: MataData[];
+  private paramConfig: ParamConfigService[] = [];
   private source: FormGroup;
   private storageName: string;
 
@@ -20,6 +22,11 @@ export class FilterParamService {
   constructor(private router: Router, private activedRoute: ActivatedRoute) {}
 
   async initilize(config: QueryParamFilterConfig) {
+    for (let mata of config.mataData) {
+      this.paramConfig.push(
+        new ParamConfigService(this.activedRoute, config.source, mata)
+      );
+    }
     this.source = config.source;
     this._mataData = config.mataData;
     this.storageName = config.storageName;
@@ -28,15 +35,11 @@ export class FilterParamService {
   }
 
   async resolveTheResolver(): Promise<any> {
-    const queryParam = this.getQueryParam();
     return Promise.all(
-      this._mataData
-        .filter((mata) => mata.resolver)
+      this.paramConfig
+        .filter((mata) => mata.resolverFn)
         .map((mata) => {
-          return mata.resolver(queryParam[mata.queryName]).then((resp) => {
-            mata.resolveData = resp;
-            return resp;
-          });
+          return mata.resolver();
         })
     );
   }
@@ -119,10 +122,8 @@ export class FilterParamService {
 
   serilizeParam(): Record<string, string> {
     let result: Record<string, string> = {};
-    for (let mata of this._mataData) {
-      const paramValue = this.source.get(mata.queryName).value;
-      const serilizedValue = mata.serializer?.(paramValue) || paramValue;
-      result[mata.queryName] = serilizedValue || null;
+    for (let mata of this.paramConfig) {
+      result[mata.queryName] = mata.serialized();
     }
     return result;
   }
@@ -137,15 +138,9 @@ export class FilterParamService {
   patchValue(data: any) {
     if (data !== null) {
       let result: Record<string, any> = {};
-      for (let mata of this._mataData) {
-        if (mata.patch) {
-          result[mata.queryName] = mata.patch(
-            mata.resolveData || data[mata.queryName]
-          );
-        } else {
-          result[mata.queryName] = mata.resolveData || data[mata.queryName];
-        }
-      }
+      this.paramConfig.forEach((config) => {
+        result[config.queryName] = config.patch();
+      });
       this.control?.patchValue(result);
     } else {
       this.control.reset();
@@ -155,26 +150,12 @@ export class FilterParamService {
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
     if (Object.keys(data).length) {
-      const mataData = this._mataData;
       let parseData: Record<string, any> = {};
-      if (mataData) {
-        for (const mata of mataData) {
-          if (mata.parser) {
-            parseData[mata.queryName] = mata.parser(data[mata.queryName]);
-          } else {
-            if (data[mata.queryName] && mata.type) {
-              parseData[mata.queryName] = parse(
-                data[mata.queryName],
-                mata.type
-              );
-            } else {
-              parseData[mata.queryName] = data[mata.queryName];
-            }
-          }
-        }
-        return parseData;
-      }
-      return data;
+
+      this.paramConfig.forEach((mata) => {
+        parseData[mata.queryName] = mata.parse();
+      });
+      return parseData;
     }
     return data;
   }
@@ -184,23 +165,12 @@ export class FilterParamService {
   }
 
   isQueryAndFormSync(): Boolean {
-    const param = this.getQueryParam();
-    const formValue = this.value;
-    let isSame = true;
-    for (let mata of this._mataData) {
-      if (mata.compareWith) {
-        isSame = mata.compareWith(
-          param[mata.queryName],
-          formValue[mata.queryName]
-        );
-      } else {
-        isSame = isEqual(param[mata.queryName], formValue[mata.queryName]);
-      }
-      if (!isSame) {
+    for (let mata of this.paramConfig) {
+      if (!mata.isEqule()) {
         return false;
       }
     }
-    return isSame;
+    return true;
   }
 
   updateQueryParam() {

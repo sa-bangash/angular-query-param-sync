@@ -53,14 +53,14 @@ export class StudentComponent implements OnInit, OnDestroy {
             resolver: async (val) => {
               console.log('called resolver', val);
               if (val) {
-                return fetchUsers(val).then((resp) => {
+                return fetchUsers(+val).then((resp) => {
                   console.log('user fetch', resp);
                   return resp;
                 });
               }
               return null;
             },
-            compareWith: (param, form) => param === form?.id,
+            compareWith: (param, form) => +param === form?.id,
             parser: (value: string) => {
               return +value;
             },

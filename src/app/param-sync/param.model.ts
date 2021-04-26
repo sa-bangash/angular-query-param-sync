@@ -6,6 +6,7 @@ export interface QueryParamFilterConfig {
   mataData: MataData[];
   storageName?: string;
 }
+export type ResolverType = (value: any) => Promise<any>;
 export interface MataData {
   type?: CONTROL_TYPES;
   queryName: string;
@@ -13,6 +14,7 @@ export interface MataData {
   parser?: (value: any) => any;
   compareWith?: (param: any, form: any) => boolean;
   patch?: (value: any) => any;
-  resolver?: (value: any) => Promise<any>;
+  // resolver?: (value: any) => Promise<any>;
+  resolver?: ResolverType;
   resolveData?: any;
 }
