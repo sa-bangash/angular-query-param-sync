@@ -4,9 +4,10 @@ import {
   NavigationEnd,
   NavigationStart,
   Router,
+  RouterEvent,
 } from '@angular/router';
 import { isEqual } from 'lodash';
-import { Subject } from 'rxjs';
+import { Subject, Unsubscribable } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
@@ -22,9 +23,11 @@ export class FilterParamService {
   private paramConfig: ParamConfigService[] = [];
   private source: FormGroup;
   private storageName: string;
-  private currentStateUrl: string;
+  private currentToSerilized: any;
   destory$ = new Subject();
   locationPathName = location.pathname;
+  private formDesotry$: Unsubscribable;
+
   constructor(private router: Router, private activedRoute: ActivatedRoute) {}
 
   async initilize(config: QueryParamFilterConfig) {
@@ -67,33 +70,32 @@ export class FilterParamService {
         console.log('init for form value', resp);
       });
     }
-
-    this.control.valueChanges
-      ?.pipe(
-        debounceTime(500),
-        distinctUntilChanged(isEqual),
-        takeUntil(this.destory$)
-      )
-      .subscribe((resp) => {
-        console.log('control value changes');
-        this.updateQueryParam();
-      });
-
+    this.startListeningToFormChange();
+    let shouldTrigger = false;
     this.router.events
       .pipe(
-        filter(
-          (i) =>
+        takeUntil(this.destory$),
+        filter((i) => {
+          if (
             i instanceof NavigationStart &&
             i.navigationTrigger === 'popstate' &&
             i.url.includes(this.locationPathName)
-        ),
-        delay(0),
-        takeUntil(this.destory$)
+          ) {
+            shouldTrigger = true;
+            return false;
+          }
+          if (i instanceof NavigationEnd && shouldTrigger) {
+            shouldTrigger = false;
+            return true;
+          }
+          return false;
+        })
       )
       .subscribe(async (resp) => {
-        console.log('param changes subscribe called');
         await this.resolveTheResolver();
+        this.stopToFormListening();
         this.patchValue();
+        this.startListeningToFormChange();
       });
 
     this.activedRoute.queryParams
@@ -102,6 +104,23 @@ export class FilterParamService {
         this.saveToStorage();
       });
     return queryParamData;
+  }
+  stopToFormListening() {
+    if (this.formDesotry$) {
+      this.formDesotry$.unsubscribe();
+    }
+  }
+  startListeningToFormChange() {
+    this.formDesotry$ = this.control.valueChanges
+      ?.pipe(
+        takeUntil(this.destory$),
+        debounceTime(500),
+        distinctUntilChanged(isEqual)
+      )
+      .subscribe((resp) => {
+        console.log('control value changes', resp);
+        this.updateQueryParam();
+      });
   }
   getFromStorage() {
     if (this.storageName) {
@@ -125,6 +144,7 @@ export class FilterParamService {
   }
   private initParam(data?: any) {
     const paramData = data || this.serilizeParam();
+    this.currentToSerilized = paramData;
     return this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: paramData,
@@ -154,7 +174,7 @@ export class FilterParamService {
       result[config.queryName] = config.patch();
     });
     if (result !== null) {
-      this.control?.patchValue(result);
+      this.control?.patchValue(result, {});
     } else {
       this.control.reset();
     }
@@ -178,6 +198,7 @@ export class FilterParamService {
   }
 
   updateQueryParam() {
+    console.log('update query param');
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {

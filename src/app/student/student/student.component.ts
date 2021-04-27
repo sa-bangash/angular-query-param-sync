@@ -70,6 +70,20 @@ export class StudentComponent implements OnInit, OnDestroy {
           },
           {
             queryName: 'date',
+            parser: (value) => {
+              console.log('parser', value);
+              if (value) {
+                return value.split('/').join('-');
+              }
+              return value;
+            },
+            serializer: (value: string) => {
+              console.log('sernlize date', value);
+              if (value) {
+                return value.split('-').join('/');
+              }
+              return value;
+            },
           },
           {
             queryName: 'user',

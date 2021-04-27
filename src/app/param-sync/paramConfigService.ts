@@ -37,7 +37,7 @@ export class ParamConfigService {
     if (this.parserFn) {
       return this.parserFn(this.queryData);
     } else {
-      if (this.queryData && this.type) {
+      if (this.type) {
         return parse(this.queryData, this.type);
       }
       return this.queryData;
@@ -50,6 +50,8 @@ export class ParamConfigService {
   patch() {
     if (this.patchFn instanceof Function) {
       return this.patchFn(this.resolveData || this.queryData);
+    } else if (this.parserFn) {
+      return this.resolveData || this.parserFn(this.queryData);
     }
     return this.resolveData || parse(this.queryData, this.type);
   }
