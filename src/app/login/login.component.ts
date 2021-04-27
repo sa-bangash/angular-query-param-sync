@@ -26,9 +26,7 @@ export class LoginComponent implements OnInit {
 
     this.form.valueChanges
       .pipe(debounceTime(500), distinctUntilChanged(isEqual))
-      .subscribe((resp) => {
-        console.log('login backend called', this.form.value);
-      });
+      .subscribe((resp) => {});
   }
 
   ngOnInit(): void {}

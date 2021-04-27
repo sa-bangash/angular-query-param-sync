@@ -12,9 +12,7 @@ export interface MataData {
   queryName: string;
   serializer?: (value: any) => any;
   parser?: (value: any) => any;
-  compareWith?: (param: any, form: any) => boolean;
   patch?: (value: any) => any;
-  // resolver?: (value: any) => Promise<any>;
   resolver?: ResolverType;
   resolveData?: any;
 }

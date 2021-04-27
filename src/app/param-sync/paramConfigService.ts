@@ -43,16 +43,7 @@ export class ParamConfigService {
       return this.queryData;
     }
   }
-  get compareWithFn(): Function {
-    return this.config.compareWith;
-  }
 
-  isEqule(): boolean {
-    if (this.compareWithFn) {
-      return this.compareWithFn(this.queryData, this.formValue);
-    }
-    return isEqual(this.parse(), this.formValue);
-  }
   get patchFn(): Function {
     return this.config.patch;
   }

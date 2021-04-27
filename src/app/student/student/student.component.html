@@ -1,4 +1,4 @@
-<h1>Student</h1>
+<h1 style="color: red">Student</h1>
 <form [formGroup]="form">
   <input type="text" formControlName="search" />
   <select formControlName="booksName" multiple>
@@ -17,6 +17,6 @@
     <option [ngValue]="user" *ngFor="let user of users">{{ user.name }}</option>
   </select>
 </form>
-<button routerLink="/books">signup</button>
+<button routerLink="/books">Booking</button>
 
 <p>{{ form.value | json }}</p>

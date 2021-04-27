@@ -1,5 +1,10 @@
 import { AbstractControl, FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  NavigationStart,
+  Router,
+} from '@angular/router';
 import { isEqual } from 'lodash';
 import { Subject } from 'rxjs';
 import {
@@ -7,18 +12,19 @@ import {
   distinctUntilChanged,
   filter,
   takeUntil,
+  delay,
   tap,
 } from 'rxjs/operators';
 import { MataData, QueryParamFilterConfig } from './param.model';
 import { ParamConfigService } from './paramConfigService';
 import { CONTROL_TYPES, isObjectEmpty, parse } from './utils';
 export class FilterParamService {
-  private _mataData: MataData[];
   private paramConfig: ParamConfigService[] = [];
   private source: FormGroup;
   private storageName: string;
-
+  private currentStateUrl: string;
   destory$ = new Subject();
+  locationPathName = location.pathname;
   constructor(private router: Router, private activedRoute: ActivatedRoute) {}
 
   async initilize(config: QueryParamFilterConfig) {
@@ -28,7 +34,6 @@ export class FilterParamService {
       );
     }
     this.source = config.source;
-    this._mataData = config.mataData;
     this.storageName = config.storageName;
     await this.initUrlFromStorage();
     return this;
@@ -56,7 +61,7 @@ export class FilterParamService {
   async sync() {
     const queryParamData = this.getQueryParam();
     if (!isObjectEmpty(queryParamData)) {
-      this.patchValue(queryParamData);
+      this.patchValue();
     } else {
       await this.initParam().then((resp) => {
         console.log('init for form value', resp);
@@ -67,27 +72,34 @@ export class FilterParamService {
       ?.pipe(
         debounceTime(500),
         distinctUntilChanged(isEqual),
-        takeUntil(this.destory$),
-        filter(() => !this.isQueryAndFormSync())
+        takeUntil(this.destory$)
       )
       .subscribe((resp) => {
         console.log('control value changes');
         this.updateQueryParam();
       });
-    this.activedRoute.queryParams
+
+    this.router.events
       .pipe(
-        takeUntil(this.destory$),
-        tap((resp) => {
-          console.log('param change occure');
-          this.saveToStorage();
-        }),
-        filter(() => !this.isQueryAndFormSync())
+        filter(
+          (i) =>
+            i instanceof NavigationStart &&
+            i.navigationTrigger === 'popstate' &&
+            i.url.includes(this.locationPathName)
+        ),
+        delay(0),
+        takeUntil(this.destory$)
       )
       .subscribe(async (resp) => {
         console.log('param changes subscribe called');
-        const data = this.getQueryParam();
         await this.resolveTheResolver();
-        this.patchValue(data);
+        this.patchValue();
+      });
+
+    this.activedRoute.queryParams
+      .pipe(takeUntil(this.destory$))
+      .subscribe(async (resp) => {
+        this.saveToStorage();
       });
     return queryParamData;
   }
@@ -136,12 +148,12 @@ export class FilterParamService {
     return this.control.value;
   }
 
-  patchValue(data: any) {
-    if (data !== null) {
-      let result: Record<string, any> = {};
-      this.paramConfig.forEach((config) => {
-        result[config.queryName] = config.patch();
-      });
+  patchValue() {
+    let result: Record<string, any> = {};
+    this.paramConfig.forEach((config) => {
+      result[config.queryName] = config.patch();
+    });
+    if (result !== null) {
       this.control?.patchValue(result);
     } else {
       this.control.reset();
@@ -163,15 +175,6 @@ export class FilterParamService {
 
   get control(): AbstractControl {
     return this.source;
-  }
-
-  isQueryAndFormSync(): Boolean {
-    for (let mata of this.paramConfig) {
-      if (!mata.isEqule()) {
-        return false;
-      }
-    }
-    return true;
   }
 
   updateQueryParam() {

@@ -30,57 +30,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       date: [],
       user: [],
     });
-
-    this.queryParamSyncFactory
-      .create({
-        source: this.form,
-        storageName: 'Student',
-        mataData: [
-          {
-            type: CONTROL_TYPES.INT_ARRAY,
-            queryName: 'booksName',
-          },
-          {
-            queryName: 'search',
-            type: CONTROL_TYPES.STRING,
-          },
-          {
-            queryName: 'date',
-          },
-          {
-            queryName: 'user',
-            type: CONTROL_TYPES.OBJECT,
-            resolver: async (val) => {
-              console.log('called resolver', val);
-              if (val) {
-                return fetchUsers(+val).then((resp) => {
-                  console.log('user fetch', resp);
-                  return resp;
-                });
-              }
-              return null;
-            },
-            compareWith: (param, form) => +param === form?.id,
-            parser: (value: string) => {
-              return +value;
-            },
-            serializer: (value) => {
-              if (value) {
-                return value.id;
-              }
-            },
-          },
-        ],
-      })
-      .then((instance) => {
-        this.queryParamFilter = instance;
-        return instance.resolveTheResolver().then(() => instance);
-      })
-      .then((instance) => {
-        console.log(instance);
-        instance.sync();
-      });
-
+    this.initQueryParam();
     fetchUsers().then((users) => {
       console.log('esolv', users);
       this.users = users;
@@ -104,6 +54,54 @@ export class StudentComponent implements OnInit, OnDestroy {
     return false;
   }
   ngOnInit(): void {}
+  initQueryParam() {
+    this.queryParamSyncFactory
+      .create({
+        source: this.form,
+        storageName: 'Student',
+        mataData: [
+          {
+            type: CONTROL_TYPES.INT_ARRAY,
+            queryName: 'booksName',
+          },
+          {
+            queryName: 'search',
+            type: CONTROL_TYPES.STRING,
+          },
+          {
+            queryName: 'date',
+          },
+          {
+            queryName: 'user',
+            type: CONTROL_TYPES.OBJECT,
+            resolver: async (val) => {
+              console.log('resolver called with ', val);
+              if (val) {
+                return fetchUsers(+val).then((resp) => {
+                  return resp;
+                });
+              }
+              return null;
+            },
+            parser: (value: string) => {
+              return +value;
+            },
+            serializer: (value) => {
+              if (value) {
+                return value.id;
+              }
+            },
+          },
+        ],
+      })
+      .then((instance) => {
+        this.queryParamFilter = instance;
+        return instance.resolveTheResolver().then(() => instance);
+      })
+      .then((instance) => {
+        instance.sync();
+      });
+  }
 }
 
 function fetchUsers(id?: number): Promise<any> {
@@ -145,6 +143,6 @@ function fetchUsers(id?: number): Promise<any> {
       } else {
         resolve(result);
       }
-    }, 1000);
+    }, 500);
   });
 }
