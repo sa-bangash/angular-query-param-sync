@@ -83,9 +83,10 @@ export class FilterParamService {
         }),
         filter(() => !this.isQueryAndFormSync())
       )
-      .subscribe((resp) => {
+      .subscribe(async (resp) => {
         console.log('param changes subscribe called');
         const data = this.getQueryParam();
+        await this.resolveTheResolver();
         this.patchValue(data);
       });
     return queryParamData;
