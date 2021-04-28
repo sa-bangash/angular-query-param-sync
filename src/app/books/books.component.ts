@@ -3,8 +3,8 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 import { isEqual } from 'lodash';
 import { Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
-import { FilterParamFactoryService } from '../param-sync/filter-param-factory.service';
-import { FilterParamService } from '../param-sync/filter-param.service';
+import { ParamSyncFactory } from '../param-sync/param-sync-factory';
+import { ParamSyncController } from '../param-sync/param-sync.controller';
 import { CONTROL_TYPES } from '../param-sync/utils';
 import { FilterStoreService } from '../query-param-sync/filter-store.service';
 
@@ -18,10 +18,10 @@ export class BooksComponent implements OnInit {
   location$ = new Observable((obser) => {
     obser.next(4);
   }).pipe(delay(2000));
-  queryParamFilter: FilterParamService;
+  queryParamFilter: ParamSyncController;
   constructor(
     private fb: FormBuilder,
-    public queryParamSyncFactory: FilterParamFactoryService
+    public queryParamSyncFactory: ParamSyncFactory
   ) {
     this.form = this.fb.group({
       booksName: [[]],
@@ -64,47 +64,4 @@ export class BooksComponent implements OnInit {
         instance.sync();
       });
   }
-}
-
-function fetchUsers(id?: number): Promise<any> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const result = [
-        {
-          id: 1,
-          name: 'shahid1',
-          topic: {
-            id: 62,
-            name: 'some Topic',
-          },
-        },
-        {
-          id: 2,
-          name: 'shahid2',
-          topic: {
-            id: 22,
-            name: 'some Topic',
-          },
-        },
-        {
-          id: 3,
-          name: 'shahid3',
-          topic: {
-            id: 32,
-            name: 'some Topic',
-          },
-        },
-      ].filter((i) => {
-        if (!id) {
-          return true;
-        }
-        return id === i.id;
-      });
-      if (id) {
-        resolve(result[0]);
-      } else {
-        resolve(result);
-      }
-    }, 1000);
-  });
 }

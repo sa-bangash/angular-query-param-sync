@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 
-import { FilterParamFactoryService } from './filter-param-factory.service';
+import { ParamSyncFactory } from './param-sync-factory';
 
 describe('FilterParamFactoryService', () => {
-  let service: FilterParamFactoryService;
+  let service: ParamSyncFactory;
 
   beforeEach(() => {
     TestBed.configureTestingModule({});
-    service = TestBed.inject(FilterParamFactoryService);
+    service = TestBed.inject(ParamSyncFactory);
   });
 
   it('should be created', () => {

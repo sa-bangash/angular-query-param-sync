@@ -4,10 +4,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
 import { Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
-import { FilterParamService } from 'src/app/param-sync/filter-param.service';
+import { ParamSyncController } from 'src/app/param-sync/param-sync.controller';
 import { FilterStoreService } from 'src/app/query-param-sync/filter-store.service';
 import { CONTROL_TYPES } from 'src/app/param-sync/utils';
-import { FilterParamFactoryService } from 'src/app/param-sync/filter-param-factory.service';
+import { ParamSyncFactory } from 'src/app/param-sync/param-sync-factory';
 
 @Component({
   selector: 'app-student',
@@ -17,18 +17,19 @@ import { FilterParamFactoryService } from 'src/app/param-sync/filter-param-facto
 })
 export class StudentComponent implements OnInit, OnDestroy {
   form: FormGroup;
-  queryParamFilter: FilterParamService;
+  queryParamFilter: ParamSyncController;
   users: any = [];
   selectedUser: any;
   constructor(
     private fb: FormBuilder,
-    public queryParamSyncFactory: FilterParamFactoryService
+    public queryParamSyncFactory: ParamSyncFactory
   ) {
     this.form = this.fb.group({
       booksName: [],
       search: [],
       date: [],
       user: [],
+      aggree: [],
     });
     this.initQueryParam();
     fetchUsers().then((users) => {
@@ -63,6 +64,10 @@ export class StudentComponent implements OnInit, OnDestroy {
           {
             type: CONTROL_TYPES.INT_ARRAY,
             queryName: 'booksName',
+          },
+          {
+            type: CONTROL_TYPES.BOOLEAN,
+            queryName: 'aggree',
           },
           {
             queryName: 'search',

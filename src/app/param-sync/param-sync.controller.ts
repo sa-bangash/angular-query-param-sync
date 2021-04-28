@@ -19,17 +19,32 @@ import {
 import { MataData, QueryParamFilterConfig } from './param.model';
 import { ParamConfigService } from './paramConfigService';
 import { CONTROL_TYPES, isObjectEmpty, parse } from './utils';
-export class FilterParamService {
+import { WindowService } from './window.service';
+export class ParamSyncController {
   private paramConfig: ParamConfigService[] = [];
   private source: FormGroup;
   private storageName: string;
-  private currentToSerilized: any;
   destory$ = new Subject();
-  locationPathName = location.pathname;
+  locationPathName;
   private formDesotry$: Unsubscribable;
+  constructor(
+    private router: Router,
+    private activedRoute: ActivatedRoute,
+    private windowService: WindowService
+  ) {
+    this.locationPathName = this.location.pathname;
+  }
+  get location() {
+    return this.window.location;
+  }
 
-  constructor(private router: Router, private activedRoute: ActivatedRoute) {}
+  get localStorage() {
+    return this.window.localStorage;
+  }
 
+  get window() {
+    return this.windowService.windowRef;
+  }
   async initilize(config: QueryParamFilterConfig) {
     for (let mata of config.mataData) {
       this.paramConfig.push(
@@ -97,7 +112,6 @@ export class FilterParamService {
         this.patchValue();
         this.startListeningToFormChange();
       });
-
     this.activedRoute.queryParams
       .pipe(takeUntil(this.destory$))
       .subscribe(async (resp) => {
@@ -124,7 +138,7 @@ export class FilterParamService {
   }
   getFromStorage() {
     if (this.storageName) {
-      const searchUrl = localStorage.getItem(this.storageName);
+      const searchUrl = this.localStorage.getItem(this.storageName);
       if (searchUrl) {
         return searchUrl;
       }
@@ -132,9 +146,9 @@ export class FilterParamService {
     return null;
   }
   saveToStorage() {
-    const searchUrl = location.search;
+    const searchUrl = this.location.search;
     if (searchUrl && this.storageName) {
-      localStorage.setItem(this.storageName, searchUrl);
+      this.localStorage.setItem(this.storageName, searchUrl);
     }
   }
   private initParamByString(data: string) {
@@ -144,7 +158,6 @@ export class FilterParamService {
   }
   private initParam(data?: any) {
     const paramData = data || this.serilizeParam();
-    this.currentToSerilized = paramData;
     return this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: paramData,

@@ -16,6 +16,7 @@
   <select formControlName="user" [compareWith]="compareFn">
     <option [ngValue]="user" *ngFor="let user of users">{{ user.name }}</option>
   </select>
+  <input type="checkbox" formControlName="aggree" />
 </form>
 <button routerLink="/books">Booking</button>
 
