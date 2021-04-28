@@ -44,7 +44,7 @@ export class BooksComponent implements OnInit {
       .create({
         source: this.form,
         storageName: 'Book',
-        mataData: [
+        config: [
           {
             type: CONTROL_TYPES.INT_ARRAY,
             queryName: 'booksName',

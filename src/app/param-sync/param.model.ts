@@ -3,11 +3,11 @@ import { CONTROL_TYPES } from './utils';
 
 export interface QueryParamFilterConfig {
   source: FormGroup;
-  mataData: MataData[];
+  config: Config[];
   storageName?: string;
 }
 export type ResolverType = (value: any) => Promise<any>;
-export interface MataData {
+export interface Config {
   type?: CONTROL_TYPES;
   queryName: string;
   serializer?: (value: any) => any;

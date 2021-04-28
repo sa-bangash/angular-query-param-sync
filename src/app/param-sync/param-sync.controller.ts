@@ -16,7 +16,7 @@ import {
   delay,
   tap,
 } from 'rxjs/operators';
-import { MataData, QueryParamFilterConfig } from './param.model';
+import { QueryParamFilterConfig } from './param.model';
 import { ParamConfigService } from './paramConfigService';
 import { CONTROL_TYPES, isObjectEmpty, parse } from './utils';
 import { WindowService } from './window.service';
@@ -45,14 +45,14 @@ export class ParamSyncController {
   get window() {
     return this.windowService.windowRef;
   }
-  async initilize(config: QueryParamFilterConfig) {
-    for (let mata of config.mataData) {
+  async initilize(option: QueryParamFilterConfig) {
+    for (let mata of option.config) {
       this.paramConfig.push(
-        new ParamConfigService(this.activedRoute, config.source, mata)
+        new ParamConfigService(this.activedRoute, option.source, mata)
       );
     }
-    this.source = config.source;
-    this.storageName = config.storageName;
+    this.source = option.source;
+    this.storageName = option.storageName;
     await this.initUrlFromStorage();
     return this;
   }

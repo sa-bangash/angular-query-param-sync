@@ -15,11 +15,11 @@ export class ParamSyncFactory {
   ) {}
 
   async create(config: QueryParamFilterConfig): Promise<ParamSyncController> {
-    const filterService = new ParamSyncController(
+    const paramSyncControler = new ParamSyncController(
       this.router,
       this.activatedRouter,
       this.windowService
     );
-    return await filterService.initilize(config);
+    return await paramSyncControler.initilize(config);
   }
 }

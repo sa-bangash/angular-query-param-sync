@@ -1,7 +1,7 @@
 import { FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { isEqual } from 'lodash';
-import { MataData, ResolverType } from './param.model';
+import { Config, ResolverType } from './param.model';
 import { CONTROL_TYPES, parse } from './utils';
 
 export class ParamConfigService {
@@ -9,7 +9,7 @@ export class ParamConfigService {
   constructor(
     private activateRoute: ActivatedRoute,
     private form: FormGroup,
-    private config: MataData
+    private config: Config
   ) {}
   get type(): CONTROL_TYPES {
     return this.config.type;

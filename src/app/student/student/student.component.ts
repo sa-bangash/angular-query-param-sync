@@ -56,7 +56,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       .create({
         source: this.form,
         storageName: 'Student',
-        mataData: [
+        config: [
           {
             type: CONTROL_TYPES.INT_ARRAY,
             queryName: 'booksName',
