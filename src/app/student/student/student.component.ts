@@ -1,11 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 import { isEqual } from 'lodash';
-import { Observable } from 'rxjs';
 import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
 import { ParamSyncController } from 'src/app/param-sync/param-sync.controller';
-import { FilterStoreService } from 'src/app/query-param-sync/filter-store.service';
 import { CONTROL_TYPES } from 'src/app/param-sync/utils';
 import { ParamSyncFactory } from 'src/app/param-sync/param-sync-factory';
 
@@ -13,7 +10,6 @@ import { ParamSyncFactory } from 'src/app/param-sync/param-sync-factory';
   selector: 'app-student',
   templateUrl: './student.component.html',
   styleUrls: ['./student.component.css'],
-  // providers: [FilterParamService],
 })
 export class StudentComponent implements OnInit, OnDestroy {
   form: FormGroup;

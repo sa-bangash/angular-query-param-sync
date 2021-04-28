@@ -1,20 +1,6 @@
-<form filterParamStorage="signup-v1" #storage="paramStorage">
-  <input
-    type="text"
-    [formControl]="search"
-    filterParamSync
-    queryParamName="search"
-    [storageSync]="storage"
-  />
-  <select
-    [formControl]="location"
-    filterParamSync
-    [defaultValue]="location$"
-    queryParamName="location"
-    multiple
-    [storageSync]="storage"
-    [queryParamFrom]="toIntArray"
-  >
+<form>
+  <input type="text" [formControl]="search" />
+  <select [formControl]="location" multiple>
     <option [ngValue]="1">Volvo 1</option>
     <option [ngValue]="2">Saab 2</option>
     <option [ngValue]="3">Mercedes 3</option>

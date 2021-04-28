@@ -1,16 +1,6 @@
-<form [formGroup]="form" filterParamStorage="FAQ-v1" #storage="paramStorage">
-  <input
-    type="text"
-    formControlName="search"
-    filterParamSync
-    [storageSync]="storage"
-  />
-  <select
-    formControlName="location"
-    filterParamSync
-    [defaultValue]="location$"
-    [storageSync]="storage"
-  >
+<form [formGroup]="form">
+  <input type="text" formControlName="search" />
+  <select formControlName="location">
     <option value="1">Volvo 1</option>
     <option value="2">Saab 2</option>
     <option value="3">Mercedes 3</option>

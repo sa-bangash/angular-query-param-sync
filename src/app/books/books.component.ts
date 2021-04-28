@@ -6,7 +6,6 @@ import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
 import { ParamSyncFactory } from '../param-sync/param-sync-factory';
 import { ParamSyncController } from '../param-sync/param-sync.controller';
 import { CONTROL_TYPES } from '../param-sync/utils';
-import { FilterStoreService } from '../query-param-sync/filter-store.service';
 
 @Component({
   selector: 'app-books',

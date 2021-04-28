@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { interval, Observable } from 'rxjs';
-import { debounceTime, delay, distinctUntilChanged, tap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
+import { debounceTime, delay, distinctUntilChanged } from 'rxjs/operators';
 import { isEqual } from 'lodash';
-import { FilterStoreService } from '../query-param-sync/filter-store.service';
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
@@ -14,11 +13,7 @@ export class LoginComponent implements OnInit {
   location$ = new Observable((obser) => {
     obser.next(4);
   }).pipe(delay(2000));
-  constructor(
-    private fb: FormBuilder,
-    public filterStoreService: FilterStoreService
-  ) {
-    this.filterStoreService.setFeatureKey('search');
+  constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       location: [],
       search: 'default from form',
