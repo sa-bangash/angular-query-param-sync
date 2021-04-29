@@ -24,7 +24,7 @@ export class BooksComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       booksName: [[]],
-      search: 'default from form',
+      search: [],
       date: [],
     });
     this.initQueryParam();

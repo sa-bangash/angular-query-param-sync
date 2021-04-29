@@ -146,9 +146,13 @@ export class ParamSyncController {
     return null;
   }
   saveToStorage() {
-    const searchUrl = this.location.search;
-    if (searchUrl && this.storageName) {
-      this.localStorage.setItem(this.storageName, searchUrl);
+    if (this.storageName) {
+      const searchUrl = this.location.search;
+      if (searchUrl) {
+        this.localStorage.setItem(this.storageName, searchUrl);
+      } else {
+        this.localStorage.removeItem(this.storageName);
+      }
     }
   }
   private initParamByString(data: string) {
