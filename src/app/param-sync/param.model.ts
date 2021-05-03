@@ -5,6 +5,7 @@ export interface QueryParamFilterConfig {
   source: FormGroup;
   config: Config[];
   storageName?: string;
+  replaceUrl?: boolean;
 }
 export type ResolverType = (value: any) => Promise<any>;
 export interface Config {

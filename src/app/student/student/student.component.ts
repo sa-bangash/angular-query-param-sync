@@ -56,6 +56,7 @@ export class StudentComponent implements OnInit, OnDestroy {
       .create({
         source: this.form,
         storageName: 'Student',
+        replaceUrl: true,
         config: [
           {
             type: CONTROL_TYPES.INT_ARRAY,

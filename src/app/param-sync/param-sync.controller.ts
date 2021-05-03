@@ -25,6 +25,7 @@ export class ParamSyncController {
   private source: FormGroup;
   private storageName: string;
   destory$ = new Subject();
+  replaceUrl = false;
   locationPathName;
   private formDesotry$: Unsubscribable;
   constructor(
@@ -53,6 +54,7 @@ export class ParamSyncController {
     }
     this.source = option.source;
     this.storageName = option.storageName;
+    this.replaceUrl = !!option.replaceUrl;
     await this.initUrlFromStorage();
     return this;
   }
@@ -222,6 +224,7 @@ export class ParamSyncController {
         ...this.serilizeParam(),
       },
       queryParamsHandling: 'merge',
+      replaceUrl: this.replaceUrl,
     });
   }
 
