@@ -24,6 +24,7 @@ export class BooksComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       booksName: [[]],
+      booksName2: [[]],
       search: [],
       date: [],
     });
@@ -48,6 +49,10 @@ export class BooksComponent implements OnInit {
           {
             type: CONTROL_TYPES.INT_ARRAY,
             queryName: 'booksName',
+          },
+          {
+            type: CONTROL_TYPES.INT_ARRAY,
+            queryName: 'booksName2',
           },
           {
             queryName: 'search',

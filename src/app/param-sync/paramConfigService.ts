@@ -27,6 +27,9 @@ export class ParamConfigService {
   serialized() {
     const paramValue = this.formValue;
     const serilizedValue = this.serializerFn?.(paramValue) || paramValue;
+    if (Array.isArray(serilizedValue) && !serilizedValue.length) {
+      return null;
+    }
     return serilizedValue || null;
   }
   get parserFn(): Function {
