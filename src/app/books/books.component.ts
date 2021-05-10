@@ -23,8 +23,8 @@ export class BooksComponent implements OnInit {
     public queryParamSyncFactory: ParamSyncFactory
   ) {
     this.form = this.fb.group({
-      booksName: [[]],
-      booksName2: [[]],
+      booksName: [[1]],
+      booksName2: [[3]],
       search: [],
       date: [],
     });
@@ -52,7 +52,8 @@ export class BooksComponent implements OnInit {
           },
           {
             type: CONTROL_TYPES.INT_ARRAY,
-            queryName: 'booksName2',
+            queryName: 'bookNameTwo',
+            path: 'booksName2',
           },
           {
             queryName: 'search',

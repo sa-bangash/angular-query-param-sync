@@ -81,73 +81,77 @@ class MockComonent {
   }
 }
 
-describe('Form => param ', () => {
-  let router: Router;
-  let component: MockComonent;
-  let fixture: ComponentFixture<MockComonent>;
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [MockComonent],
-      imports: [
-        FormsModule,
-        ReactiveFormsModule,
-        RouterTestingModule.withRoutes([]),
-      ],
-    }).compileComponents();
-    router = TestBed.inject(Router);
-  });
-  describe('string', () => {
-    beforeEach(() => {
+fdescribe('Form => param ', () => {
+  fdescribe('string', () => {
+    let router: Router;
+    let component: MockComonent;
+    let fixture: ComponentFixture<MockComonent>;
+    beforeEach(async () => {
+      TestBed.configureTestingModule({
+        declarations: [MockComonent],
+        imports: [
+          FormsModule,
+          ReactiveFormsModule,
+          RouterTestingModule.withRoutes([]),
+        ],
+      }).compileComponents();
+      const x = TestBed.inject(ActivatedRoute);
+      const router = TestBed.inject(Router);
+      console.log('router', router);
+      await router.navigate([], { queryParams: null });
       console.log('called before');
       fixture = TestBed.createComponent(MockComonent);
       component = fixture.componentInstance;
     });
-    it('default value  to param', async () => {
+    it('default value  to param', fakeAsync(async () => {
+      console.log('before', component.queryParamSnapshot, component.form.value);
       await component.initQueryParam();
-      console.log(component.queryParamSnapshot);
+      console.log('after', component.form.value);
+      console.log('query snapet default value', component.queryParamSnapshot);
       expect(component.queryParamSnapshot).toEqual(
         jasmine.objectContaining({
           search: 'default value',
         })
       );
-    });
-    it('change string after default value', fakeAsync(() => {
-      component.initQueryParam();
-      tick();
-      component.searchCtrl.patchValue('new value');
-      tick(500);
-      console.log(component.queryParamSnapshot);
-      expect(component.queryParamSnapshot).toEqual(
-        jasmine.objectContaining({
-          search: 'new value',
-        })
-      );
+      tick(600);
     }));
+    // it('change string after default value', fakeAsync(async () => {
+    //   await component.initQueryParam();
+
+    //   component.searchCtrl.patchValue('new value');
+    //   console.log(component.queryParamSnapshot);
+    //   expect(component.queryParamSnapshot).toEqual(
+    //     jasmine.objectContaining({
+    //       search: 'new value',
+    //     })
+    //   );
+    //   tick(600);
+    // }));
   });
 });
 
-describe('Param => form', () => {
-  let component: MockComonent;
-  let fixture: ComponentFixture<MockComonent>;
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [MockComonent],
-      imports: [
-        FormsModule,
-        ReactiveFormsModule,
-        RouterTestingModule.withRoutes([]),
-      ],
-      providers: [stubActivatedRoute({ search: 'param to form' })],
-    }).compileComponents();
-    fixture = TestBed.createComponent(MockComonent);
-    component = fixture.componentInstance;
-  });
-  it('string param to form', fakeAsync(async () => {
-    console.log('mock snapshot', component.activitatedRoute);
+// describe('Param => form', () => {
+//   let component: MockComonent;
+//   let fixture: ComponentFixture<MockComonent>;
+//   beforeEach(() => {
+//     TestBed.configureTestingModule({
+//       declarations: [MockComonent],
+//       imports: [
+//         FormsModule,
+//         ReactiveFormsModule,
+//         RouterTestingModule.withRoutes([]),
+//       ],
+//       providers: [stubActivatedRoute({ search: 'param to form' })],
+//     }).compileComponents();
+//     fixture = TestBed.createComponent(MockComonent);
+//     component = fixture.componentInstance;
+//   });
+//   it('string param to form', fakeAsync(async () => {
+//     console.log('mock snapshot', component.activitatedRoute);
 
-    await component.initQueryParam();
-    tick();
-    console.log(component.form.value);
-    expect(component.searchCtrl.value).toEqual('param to form');
-  }));
-});
+//     await component.initQueryParam();
+//     tick();
+//     console.log(component.form.value);
+//     expect(component.searchCtrl.value).toEqual('param to form');
+//   }));
+// });

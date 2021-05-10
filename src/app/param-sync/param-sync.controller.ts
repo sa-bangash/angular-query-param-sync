@@ -47,6 +47,7 @@ export class ParamSyncController {
     return this.windowService.windowRef;
   }
   async initilize(option: QueryParamFilterConfig) {
+    console.log(this.location.pathname);
     for (let mata of option.config) {
       this.paramConfig.push(
         new ParamConfigService(this.activedRoute, option.source, mata)
@@ -74,7 +75,7 @@ export class ParamSyncController {
     if (isObjectEmpty(queryParamData)) {
       const storageParam = this.getFromStorage();
       if (storageParam) {
-        await this.initParamByString(storageParam);
+        await this.initParam(storageParam);
       }
     }
   }
@@ -83,9 +84,7 @@ export class ParamSyncController {
     if (!isObjectEmpty(queryParamData)) {
       this.patchValue();
     } else {
-      await this.initParam().then((resp) => {
-        console.log('init for form value', resp);
-      });
+      await this.initParam();
     }
     this.startListeningToFormChange();
     let shouldTrigger = false;
@@ -117,7 +116,7 @@ export class ParamSyncController {
     this.activedRoute.queryParams
       .pipe(takeUntil(this.destory$))
       .subscribe(async (resp) => {
-        this.saveToStorage();
+        this.saveToStorage(resp);
       });
     return queryParamData;
   }
@@ -134,33 +133,26 @@ export class ParamSyncController {
         distinctUntilChanged(isEqual)
       )
       .subscribe((resp) => {
-        console.log('control value changes', resp);
         this.updateQueryParam();
       });
   }
   getFromStorage() {
     if (this.storageName) {
-      const searchUrl = this.localStorage.getItem(this.storageName);
+      const searchUrl = JSON.parse(this.localStorage.getItem(this.storageName));
       if (searchUrl) {
         return searchUrl;
       }
     }
     return null;
   }
-  saveToStorage() {
+  saveToStorage(resp: any) {
     if (this.storageName) {
-      const searchUrl = this.location.search;
-      if (searchUrl) {
-        this.localStorage.setItem(this.storageName, searchUrl);
+      if (resp) {
+        this.localStorage.setItem(this.storageName, JSON.stringify(resp));
       } else {
         this.localStorage.removeItem(this.storageName);
       }
     }
-  }
-  private initParamByString(data: string) {
-    this.router.navigateByUrl(this.router.url + data, {
-      replaceUrl: true,
-    });
   }
   private initParam(data?: any) {
     const paramData = data || this.serilizeParam();
@@ -190,7 +182,7 @@ export class ParamSyncController {
   patchValue() {
     let result: Record<string, any> = {};
     this.paramConfig.forEach((config) => {
-      result[config.queryName] = config.patch();
+      result[config.formKey] = config.patch();
     });
     if (result !== null) {
       this.control?.patchValue(result, {});
@@ -217,7 +209,6 @@ export class ParamSyncController {
   }
 
   updateQueryParam() {
-    console.log('update query param');
     this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: {

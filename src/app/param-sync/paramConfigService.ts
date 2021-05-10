@@ -11,6 +11,9 @@ export class ParamConfigService {
     private form: FormGroup,
     private config: Config
   ) {}
+  get path(): string {
+    return this.config.path;
+  }
   get type(): CONTROL_TYPES {
     return this.config.type;
   }
@@ -18,11 +21,14 @@ export class ParamConfigService {
     return this.config.queryName;
   }
 
+  get formKey(): string {
+    return this.path || this.queryName;
+  }
   get serializerFn(): Function {
     return this.config.serializer;
   }
   get formValue() {
-    return this.form.get(this.queryName).value;
+    return this.form.get(this.formKey).value;
   }
   serialized() {
     const paramValue = this.formValue;

@@ -10,6 +10,7 @@ export interface QueryParamFilterConfig {
 export type ResolverType = (value: any) => Promise<any>;
 export interface Config {
   type?: CONTROL_TYPES;
+  path?: string;
   queryName: string;
   serializer?: (value: any) => any;
   parser?: (value: any) => any;
