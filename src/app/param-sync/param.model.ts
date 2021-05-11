@@ -18,3 +18,9 @@ export interface Config {
   resolver?: ResolverType;
   resolveData?: any;
 }
+
+export interface FilterSyncStorage {
+  saveItem: (path: string, data: any) => void;
+  getItem: (path: string) => any;
+  removeItem: (path: string) => void;
+}

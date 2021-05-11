@@ -4,9 +4,7 @@ export interface WindowService {
 }
 export const WINDOW_SERVICE = new InjectionToken('QP_WINDOW_SERVICE', {
   providedIn: 'root',
-  factory() {
-    return {
+  factory: () => ({
       windowRef: window,
-    };
-  },
+    }),
 });

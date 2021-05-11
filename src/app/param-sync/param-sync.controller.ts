@@ -4,51 +4,34 @@ import {
   NavigationEnd,
   NavigationStart,
   Router,
-  RouterEvent,
 } from '@angular/router';
 import { isEqual } from 'lodash';
-import { Subject, Unsubscribable } from 'rxjs';
+import { BehaviorSubject, Unsubscribable } from 'rxjs';
 import {
   debounceTime,
   distinctUntilChanged,
   filter,
   takeUntil,
-  delay,
-  tap,
 } from 'rxjs/operators';
-import { QueryParamFilterConfig } from './param.model';
+import { FilterSyncStorage, QueryParamFilterConfig } from './param.model';
 import { ParamConfigService } from './paramConfigService';
-import { CONTROL_TYPES, isObjectEmpty, parse } from './utils';
-import { WindowService } from './window.service';
+import { isObjectEmpty } from './utils';
 export class ParamSyncController {
   private paramConfig: ParamConfigService[] = [];
   private source: FormGroup;
   private storageName: string;
-  destory$ = new Subject();
+  destory$ = new BehaviorSubject<boolean>(false);
   replaceUrl = false;
-  locationPathName;
+
   private formDesotry$: Unsubscribable;
   constructor(
     private router: Router,
     private activedRoute: ActivatedRoute,
-    private windowService: WindowService
-  ) {
-    this.locationPathName = this.location.pathname;
-  }
-  get location() {
-    return this.window.location;
-  }
+    private storage: FilterSyncStorage
+  ) {}
 
-  get localStorage() {
-    return this.window.localStorage;
-  }
-
-  get window() {
-    return this.windowService.windowRef;
-  }
   async initilize(option: QueryParamFilterConfig) {
-    console.log(this.location.pathname);
-    for (let mata of option.config) {
+    for (const mata of option.config) {
       this.paramConfig.push(
         new ParamConfigService(this.activedRoute, option.source, mata)
       );
@@ -64,9 +47,7 @@ export class ParamSyncController {
     return Promise.all(
       this.paramConfig
         .filter((mata) => mata.resolverFn)
-        .map((mata) => {
-          return mata.resolver();
-        })
+        .map((mata) => mata.resolver())
     );
   }
 
@@ -80,6 +61,9 @@ export class ParamSyncController {
     }
   }
   async sync() {
+    if (this.destory$.value) {
+      return null;
+    }
     const queryParamData = this.getQueryParam();
     if (!isObjectEmpty(queryParamData)) {
       this.patchValue();
@@ -90,12 +74,11 @@ export class ParamSyncController {
     let shouldTrigger = false;
     this.router.events
       .pipe(
-        takeUntil(this.destory$),
+        takeUntil(this.destory$.pipe(filter((v: boolean) => v))),
         filter((i) => {
           if (
             i instanceof NavigationStart &&
-            i.navigationTrigger === 'popstate' &&
-            i.url.includes(this.locationPathName)
+            i.navigationTrigger === 'popstate'
           ) {
             shouldTrigger = true;
             return false;
@@ -114,9 +97,9 @@ export class ParamSyncController {
         this.startListeningToFormChange();
       });
     this.activedRoute.queryParams
-      .pipe(takeUntil(this.destory$))
-      .subscribe(async (resp) => {
-        this.saveToStorage(resp);
+      .pipe(takeUntil(this.destory$.pipe(filter((v: boolean) => v))))
+      .subscribe(() => {
+        this.saveToStorage();
       });
     return queryParamData;
   }
@@ -128,7 +111,7 @@ export class ParamSyncController {
   startListeningToFormChange() {
     this.formDesotry$ = this.control.valueChanges
       ?.pipe(
-        takeUntil(this.destory$),
+        takeUntil(this.destory$.pipe(filter((v: boolean) => v))),
         debounceTime(500),
         distinctUntilChanged(isEqual)
       )
@@ -136,37 +119,53 @@ export class ParamSyncController {
         this.updateQueryParam();
       });
   }
+
   getFromStorage() {
-    if (this.storageName) {
-      const searchUrl = JSON.parse(this.localStorage.getItem(this.storageName));
-      if (searchUrl) {
-        return searchUrl;
+    try {
+      if (this.storageName) {
+        const data = this.storage.getItem(this.storageName);
+        if (data) {
+          return data;
+        }
       }
+    } catch (err) {
+      return null;
     }
     return null;
   }
-  saveToStorage(resp: any) {
+
+  getDataForStorage(): any {
+    const result: Record<string, any> = {};
+    for (const mata of this.paramConfig) {
+      result[mata.queryName] = mata.queryData;
+    }
+    return result;
+  }
+  saveToStorage() {
+    const dataToStore = this.getDataForStorage();
     if (this.storageName) {
-      if (resp) {
-        this.localStorage.setItem(this.storageName, JSON.stringify(resp));
+      if (!isObjectEmpty(dataToStore)) {
+        this.storage.saveItem(this.storageName, dataToStore);
       } else {
-        this.localStorage.removeItem(this.storageName);
+        this.storage.removeItem(this.storageName);
       }
     }
   }
   private initParam(data?: any) {
+    if (this.destory$.value) {
+      return null;
+    }
     const paramData = data || this.serilizeParam();
     return this.router.navigate([], {
       relativeTo: this.activedRoute,
       queryParams: paramData,
-      queryParamsHandling: 'merge',
       replaceUrl: true,
     });
   }
 
   serilizeParam(): Record<string, string> {
-    let result: Record<string, string> = {};
-    for (let mata of this.paramConfig) {
+    const result: Record<string, string> = {};
+    for (const mata of this.paramConfig) {
       result[mata.queryName] = mata.serialized();
     }
     return result;
@@ -180,12 +179,12 @@ export class ParamSyncController {
   }
 
   patchValue() {
-    let result: Record<string, any> = {};
+    const result: Record<string, any> = {};
     this.paramConfig.forEach((config) => {
       result[config.formKey] = config.patch();
     });
     if (result !== null) {
-      this.control?.patchValue(result, {});
+      this.control?.patchValue(result);
     } else {
       this.control.reset();
     }
@@ -194,7 +193,7 @@ export class ParamSyncController {
   getQueryParam() {
     const data = this.activedRoute.snapshot.queryParams;
     if (Object.keys(data).length) {
-      let parseData: Record<string, any> = {};
+      const parseData: Record<string, any> = {};
 
       this.paramConfig.forEach((mata) => {
         parseData[mata.queryName] = mata.parse();
@@ -220,7 +219,7 @@ export class ParamSyncController {
   }
 
   destory() {
-    this.destory$.next();
+    this.destory$.next(true);
     this.destory$.complete();
   }
 }

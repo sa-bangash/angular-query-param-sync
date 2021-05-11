@@ -6,7 +6,7 @@ export enum CONTROL_TYPES {
   NUMBER = 'NUMBER',
   STRING = 'STRING',
 }
-export function parse(value: any, valueType: CONTROL_TYPES) {
+export const parse = (value: any, valueType: CONTROL_TYPES) => {
   switch (valueType) {
     case CONTROL_TYPES.STRING: {
       return value;
@@ -42,8 +42,8 @@ export function parse(value: any, valueType: CONTROL_TYPES) {
     }
   }
   return value;
-}
+};
+export const isObjectEmpty = (obj: any): boolean =>
+  !!!Object.keys(obj || {}).length;
 
-export function isObjectEmpty(obj: any): boolean {
-  return !!!Object.keys(obj || {}).length;
-}
+export const PREFIX = '__filter__';

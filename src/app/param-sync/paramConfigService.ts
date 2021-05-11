@@ -1,21 +1,16 @@
 import { FormGroup } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { isEqual } from 'lodash';
 import { Config, ResolverType } from './param.model';
 import { CONTROL_TYPES, parse } from './utils';
 
 export class ParamConfigService {
   private _resolveData?: any;
-  constructor(
-    private activateRoute: ActivatedRoute,
-    private form: FormGroup,
-    private config: Config
-  ) {}
-  get path(): string {
-    return this.config.path;
-  }
+  constructor(private activateRoute: ActivatedRoute, private form: FormGroup, private config: Config) {}
   get type(): CONTROL_TYPES {
     return this.config.type;
+  }
+  get path(): string {
+    return this.config.path;
   }
   get queryName(): string {
     return this.config.queryName;
@@ -24,7 +19,8 @@ export class ParamConfigService {
   get formKey(): string {
     return this.path || this.queryName;
   }
-  get serializerFn(): Function {
+
+  get serializerFn(): Config['serializer'] {
     return this.config.serializer;
   }
   get formValue() {
@@ -38,7 +34,7 @@ export class ParamConfigService {
     }
     return serilizedValue || null;
   }
-  get parserFn(): Function {
+  get parserFn(): Config['parser'] {
     return this.config.parser;
   }
 
@@ -53,7 +49,7 @@ export class ParamConfigService {
     }
   }
 
-  get patchFn(): Function {
+  get patchFn(): Config['patch'] {
     return this.config.patch;
   }
   patch() {
@@ -68,7 +64,7 @@ export class ParamConfigService {
     return this.config.resolver;
   }
   resolver(): Promise<any> {
-    return this.resolverFn(this.queryData).then((resp) => {
+    return this.resolverFn(this.queryData).then(resp => {
       this.resolveData = resp;
       return resp;
     });
