@@ -109,7 +109,7 @@ You want to retrive some data before synchronization like in the above example w
 
 #### `resolveTheResolver()`
 
-    we need to call explicitly resolveTheResolver method once we have resolver.
+we need to call explicitly resolveTheResolver method once we have resolver.
 
 ### `storageName`
 
