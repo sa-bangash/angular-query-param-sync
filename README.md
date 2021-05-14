@@ -81,7 +81,7 @@ export class DemoComponent implements OnInit {
 
 ### `queryName`
 
-Name that will be appear in url and if ** path ** is not provide than it should be same as form field.
+Name that will be appear in url and if **path** is not provide than it should be same as form field.
 
 ### `path`
 
