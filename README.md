@@ -87,38 +87,38 @@ Name that will be appear in url and if ** path ** is not provide than it should 
 
 Some time need to provide different key in url so `path` is refer to form field should be use along with `queryName'.
 
-### type
+### `type`
 
-    Refer to parse data from url to form. like we have type CONTROL_TYPES.NUMBER which take value from url as string and parse to number for form. there amy other types.
+Refer to parse data from url to form. like we have type CONTROL_TYPES.NUMBER which take value from url as string and parse to number for form. there amy other types.
 
-    1. CONTROL_TYPES.ARRAY
-    2. CONTROL_TYPES.INT_ARRAY
-    3. CONTROL_TYPES.BOOLEAN
+1. CONTROL_TYPES.ARRAY
+2. CONTROL_TYPES.INT_ARRAY
+3. CONTROL_TYPES.BOOLEAN
 
-### parse
+### `parse()`
 
-    Refer to provide custom parser instead of defining `type`. so actullay ovride the default parse that we provide in type.
+Refer to provide custom parser instead of defining `type`. so actullay ovride the default parse that we provide in type.
 
-### serializer
+### `serializer()`
 
-    Whan you want to store different data in url like in above example we did not want to store the whole user object insetad just want to store user id.
+Whan you want to store different data in url like in above example we did not want to store the whole user object insetad just want to store user id.
 
-### resolver
+### `resolver()`
 
-    you want to retrive some data before synchronization like in the above example we just store the user id  by serializer but for the form we need to the whole user so we can retrive it through resolver.
+You want to retrive some data before synchronization like in the above example we just store the user id by serializer but for the form we need to the whole user so we can retrive it through resolver.
 
-#### resolveTheResolver()
+#### `resolveTheResolver()`
 
-        we need to call explicitly resolveTheResolver method once we have resolver.
+    we need to call explicitly resolveTheResolver method once we have resolver.
 
-### storageName
+### `storageName`
 
-    Provide storageName if you want to store data in local storage other wise it will not store.
+Provide storageName if you want to store data in local storage other wise it will not store.
 
-### sync()
+### `sync()`
 
-    You need to called once when you ready to sync data.
+You need to called once when you ready to sync data.
 
-### destory
+### `destory()`
 
-    you we need to clean up memory by calling destory method.
+you we need to clean up memory by calling destory method.
