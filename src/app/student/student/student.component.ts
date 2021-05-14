@@ -80,7 +80,6 @@ export class StudentComponent implements OnInit, OnDestroy {
               return value;
             },
             serializer: (value: string) => {
-              console.log('sernlize date', value);
               if (value) {
                 return value.split('-').join('/');
               }
@@ -91,7 +90,6 @@ export class StudentComponent implements OnInit, OnDestroy {
             queryName: 'user',
             type: CONTROL_TYPES.OBJECT,
             resolver: async (val) => {
-              console.log('resolver called with ', val);
               if (val) {
                 return fetchUsers(+val).then((resp) => {
                   return resp;

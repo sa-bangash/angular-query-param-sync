@@ -21,6 +21,7 @@ export class DemoComponent implements OnInit {
     this.form = this.fb.group({
       search: [],
       date: [],
+      user: [],
     });
     this.initQueryParam();
 
@@ -32,40 +33,49 @@ export class DemoComponent implements OnInit {
   }
 
   async initQueryParam() {
-    this.queryParamFilter = await this.queryParamSyncFactory
-      .create({
-        source: this.form,
-        storageName: "Demo",
-        config: [
-          {
-            queryName: "query",
-            type: CONTROL_TYPES.STRING,
-            path:'search'
-          },
-          {
-            queryName: "date",
-            parse: (value) => {
-              if(value){
-                  return new Date(value)
-              }
-              return value;
-            },
-            serializer:(value)=>{
-              if(value instanceOf Date){
-                  return value.toString();
-              }
-              return value;
+    this.queryParamFilter = await this.queryParamSyncFactory.create({
+      source: this.form,
+      storageName: "Demo",
+      config: [
+        {
+          queryName: "user",
+          serializer: (value) => {
+            if (value) {
+              return value.id;
             }
           },
-        ],
-      })
-     await this.queryParamFilter.sync();
+          resolver: async (val) => {
+            if (val) {
+              return fetchUsers(+val).then((resp) => {
+                return resp;
+              });
+            }
+            return null;
+          },
+        },
+        {
+          queryName: "query",
+          type: CONTROL_TYPES.STRING,
+          path: "search",
+        },
+        {
+          queryName: "date",
+          parse: (value) => {
+            if (value) {
+              return new Date(value);
+            }
+            return value;
+          },
+        },
+      ],
+    });
+    await this.queryParamFilter.resolveTheResolver();
+    await this.queryParamFilter.sync();
   }
 
-   ngOnDestroy(): void {
+  ngOnDestroy(): void {
     this.queryParamFilter.destory(); // this importent part
   }
-
 }
 ```
 
@@ -88,6 +98,18 @@ export class DemoComponent implements OnInit {
 ### parse
 
     Refer to provide custom parser instead of defining `type`. so actullay ovride the default parse that we provide in type.
+
+### serializer
+
+    Whan you want to store different data in url like in above example we did not want to store the whole user object insetad just want to store user id.
+
+### resolver
+
+    you want to retrive some data before synchronization like in the above example we just store the user id  by serializer but for the form we need to the whole user so we can retrive it through resolver.
+
+#### resolveTheResolver()
+
+        we need to call explicitly resolveTheResolver method once we have resolver.
 
 ### storageName
 
