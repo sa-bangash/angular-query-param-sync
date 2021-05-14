@@ -113,7 +113,7 @@ we need to call explicitly resolveTheResolver method once we have resolver.
 
 ### `storageName`
 
-Provide storageName if you want to store data in local storage other wise it will not store.
+Provide storageName if you want to store data in local storage with key that you provide to storageName other wise it will not store.
 
 ### `sync()`
 
