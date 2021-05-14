@@ -85,7 +85,7 @@ Name that will be appear in url and if **path** is not provide than it should be
 
 ### `path`
 
-Some time need to provide different key in url so `path` is refer to form field should be use along with `queryName'.
+Some time need to provide different key in url so `path` is refer to form field should be use along with **queryName**'.
 
 ### `type`
 
